@@ -13,3 +13,6 @@ parameters/yin/gw-system.xml
 parameters/yin/ietf-inet-types.xml
 .classpath
 .project
+*.yang
+*.xls
+*.xml

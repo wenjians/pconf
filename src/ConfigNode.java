@@ -689,8 +689,15 @@ class ConfigType extends ConfigNode {
                 _range.append("length: " + length);
             }
         }
-        else {
+        
+        else if (range.length() != 0){
             _range.append(range);
+        }
+        
+        else if (!ConfigBuiltin.isGwBuiltin(getName())) {
+            if (typeDefinition != null) {
+                return typeDefinition.dataType.getRange();
+            }
         }
         
         return _range.toString();

@@ -591,9 +591,11 @@ public final class YinParser {
         dataType.setName(typedef.getName());
         dataType.typeDefinition = typedef;
         
+        /*
         if (!ConfigBuiltin.isGwBuiltin(typedef.getName())) {
         	configNode.dataType = typedef.dataType;
         }
+        */
         
         for (int i=0; i<stmntList.getLength(); i++){
 
