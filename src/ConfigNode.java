@@ -22,7 +22,7 @@ class ConfigDataMust {
 
     @Override
     public String toString() {
-        return "XPathMust [description=" + description + ", appTag=" + condition 
+        return "XPathMust [description=" + description + ", condition=" + condition 
              + ", errMsg=" + errMsg + "]";
     }
 }
@@ -30,11 +30,11 @@ class ConfigDataMust {
 class ConfigNode {
 
 	static enum NodeType { 
-		invalid, module, container, leaf, leaf_list, list, 
-		data_type, type_def, type_builtin 	
+		INVALID, MODULE, CONTAINER, LEAF, LEAF_LIST, LIST, 
+		DATA_TYPE, TYPE_DEF, TYPE_BUILTIN 	
 	}
     
-    static enum Scope { invalid, system, customer, element }
+    static enum Scope { INVALID, SYSTEM, CUSTOMER, ELEMENT }
     
     static PConfError errProc = PConfError.getInstance();
     
@@ -87,7 +87,7 @@ class ConfigNode {
         
     
     protected ConfigNode() {
-        type            = NodeType.invalid;
+        type            = NodeType.INVALID;
         name            = "";
         children        = null; // some node don't have child
         parent          = null;
@@ -101,7 +101,7 @@ class ConfigNode {
         minElements = "";
         orderedBy = "";
         
-        gw_scope        = Scope.invalid;
+        gw_scope        = Scope.INVALID;
         gw_add_rel  	= "";
         gw_mod_rel  	= "";
         gw_service_impact = "";
@@ -112,21 +112,21 @@ class ConfigNode {
     }
     
     boolean isConfigParameter()  {
-        return ((type == NodeType.container) ||
-                (type == NodeType.leaf)      ||
-                (type == NodeType.leaf_list) ||
-                (type == NodeType.list));
+        return ((type == NodeType.CONTAINER) ||
+                (type == NodeType.LEAF)      ||
+                (type == NodeType.LEAF_LIST) ||
+                (type == NodeType.LIST));
     }
     
     
     //invalid, module, container, leaf, leaf_list, list, data_type, type_def
     
-    boolean isConfigModule()    { return type == NodeType.module;       }
-    boolean isContainer()       { return type == NodeType.container;    }
-    boolean isLeaf()            { return type == NodeType.leaf;         }
-    boolean isLeafList()        { return type == NodeType.leaf_list;    }
-    boolean isDataType()        { return type == NodeType.data_type;    }
-    boolean isTypeDef()         { return type == NodeType.type_def;     }
+    boolean isConfigModule()    { return type == NodeType.MODULE;       }
+    boolean isContainer()       { return type == NodeType.CONTAINER;    }
+    boolean isLeaf()            { return type == NodeType.LEAF;         }
+    boolean isLeafList()        { return type == NodeType.LEAF_LIST;    }
+    boolean isDataType()        { return type == NodeType.DATA_TYPE;    }
+    boolean isTypeDef()         { return type == NodeType.TYPE_DEF;     }
     
     
     boolean isConfigurable() {
@@ -141,7 +141,7 @@ class ConfigNode {
     public String getScopeName() {
         String _scopeName;
         
-        if (gw_scope == Scope.invalid) {
+        if (gw_scope == Scope.INVALID) {
             _scopeName = "";
         } else {
             _scopeName = gw_scope.toString();
@@ -152,13 +152,13 @@ class ConfigNode {
 
     public void setScope(String scope) {
         if (scope.contentEquals("system")) {
-            this.gw_scope = Scope.system;
+            this.gw_scope = Scope.SYSTEM;
         }
         else if (scope.contentEquals("customer")) {
-            this.gw_scope = Scope.customer;
+            this.gw_scope = Scope.CUSTOMER;
         }
         else if (scope.contentEquals("element")) {
-            this.gw_scope = Scope.element;
+            this.gw_scope = Scope.ELEMENT;
         }
         else {
             String errMsg;
@@ -308,7 +308,7 @@ class ConfigNode {
         
         
         for (ConfigNode parent=getParent();
-             parent.type != ConfigNode.NodeType.module;
+             parent.type != ConfigNode.NodeType.MODULE;
              parent = parent.getParent()
             ) {
             keyword.add(parent.getName());
@@ -324,6 +324,31 @@ class ConfigNode {
         return fullPathName + getName();
     }    
     
+    String getFullPathName() {
+        List<String> keyword = new ArrayList<String> ();
+        
+        String fullPathName="";
+        ConfigNode curNode=this;
+        
+        
+        if (isConfigModule()) {
+        	return getName();
+        }
+        
+        
+        do {
+        	curNode = curNode.getParent();
+        	keyword.add(curNode.getName());
+        } while (!curNode.isConfigModule());
+            
+
+        
+        for (int i=keyword.size()-1; i>=0; i--) {
+            fullPathName += keyword.get(i) + "/";
+        }
+        
+        return fullPathName + getName();
+    }   
     /*
     String getFullPathName() {
         
@@ -360,7 +385,7 @@ class ConfigModule extends ConfigNode {
     
     ConfigModule() {
         super();
-        type = NodeType.module;
+        type = NodeType.MODULE;
         children = new ArrayList<ConfigNode> ();
     }
     
@@ -413,7 +438,7 @@ class ConfigContainer extends ConfigNode {
     ConfigContainer() {
         super();
         
-        type = NodeType.container;
+        type = NodeType.CONTAINER;
         children = new ArrayList<ConfigNode> ();
         limit_must = new ArrayList <ConfigDataMust> ();
     }
@@ -433,7 +458,7 @@ class ConfigLeaf extends ConfigNode {
     ConfigLeaf() {
         super();
         
-        type = NodeType.leaf;
+        type = NodeType.LEAF;
         children = null;
         limit_must = new ArrayList <ConfigDataMust> () ;
     }
@@ -456,7 +481,7 @@ class ConfigLeafList extends ConfigNode {
     ConfigLeafList() {
         super();
         
-        type        = NodeType.leaf_list;
+        type        = NodeType.LEAF_LIST;
         children    = null;
         
         limit_must = new ArrayList <ConfigDataMust> ();
@@ -479,7 +504,7 @@ class ConfigList extends ConfigNode {
         super();
         
         listKey = "";
-        type = NodeType.list;
+        type = NodeType.LIST;
         children = new ArrayList<ConfigNode> ();
         limit_must = new ArrayList <ConfigDataMust> () ;
     }
@@ -498,7 +523,7 @@ class ConfigTypedef extends ConfigNode {
     ConfigTypedef() {
         super();
         
-        type 	 = NodeType.type_def;
+        type 	 = NodeType.TYPE_DEF;
         children = null;
     }
     
@@ -565,7 +590,7 @@ class ConfigBuiltin extends ConfigTypedef {
     	
     	assert (isYangBuiltin(name));
     	
-        type = NodeType.type_builtin;
+        type = NodeType.TYPE_BUILTIN;
         setName(_name);
     }
     
@@ -613,7 +638,7 @@ class ConfigType extends ConfigNode {
         super();
         
             
-        type = NodeType.data_type;
+        type = NodeType.DATA_TYPE;
         
         typeDefinition = null;
         defModule    = "";

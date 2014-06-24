@@ -195,7 +195,7 @@ public final class YinParser {
         Element xmlStmnt  = (Element)node;
         
         if (keyword.contentEquals("namespace")) {
-            if (configModule.type == ConfigNode.NodeType.module) {
+            if (configModule.type == ConfigNode.NodeType.MODULE) {
                 configModule.setNamespace(xmlStmnt.getAttribute("uri").trim());
             }
         }
@@ -612,8 +612,10 @@ public final class YinParser {
                 typeChoice.descr = getSubelementValue(xmlSubStmnt, SUB_ELE_CTXT, "description", "text");
                 typeChoice.status = getSubelementValue(xmlSubStmnt, SUB_ELE_ATTR, "status", "value");
                 
+                /*
                 if (typeChoice.status.length() != 0)
                     System.out.println("parseType: enum: " + typeChoice);
+             	*/
                
                 dataType.enumValList.add(typeChoice);
             }
@@ -643,7 +645,7 @@ public final class YinParser {
     */
     private boolean parseMust(ConfigNode configNode, Element xmlStmnt, YangFile yangFile) {
 
-        System.out.println("parseMust =" + xmlStmnt.getNodeName());
+        //System.out.println("parseMust =" + xmlStmnt.getNodeName());
         
         if (!configNode.isConfigParameter()) {
             errProc.addMessage("Unsupportted 'must' in config node " + configNode.getName()
@@ -655,11 +657,11 @@ public final class YinParser {
         ConfigDataMust dataMust = new ConfigDataMust();
 
         dataMust.condition = xmlStmnt.getAttribute("condition").trim();
-        dataMust.errMsg = getSubelementValue(xmlStmnt, SUB_ELE_ATTR, "error-message", "value");
+        dataMust.errMsg = getSubelementValue(xmlStmnt, SUB_ELE_CTXT, "error-message", "value");
         dataMust.description = getSubelementValue(xmlStmnt, SUB_ELE_CTXT, "description", "text");
         configNode.limit_must.add(dataMust);
         
-        System.out.println("parseMust, node: " + configNode.getName() + dataMust);
+        //System.out.println("parseMust, node: " + configNode.getName() + " " + dataMust);
 
         return true;
     }    

@@ -47,45 +47,45 @@ public class ConfigExport {
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportOneLeafNode(ConfigNode configNode) {
+    void exportLeaf(ConfigNode configNode) {
         
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportOneLeafListNode(ConfigNode configNode) {
+    void exportLeafList(ConfigNode configNode) {
         
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportOneListNode(ConfigNode configNode) {
+    void exportList(ConfigNode configNode) {
         
         
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportOneContainerNode(ConfigNode configNode) {
+    void exportContainer(ConfigNode configNode) {
         
     }
     
     final void exportOneNode(ConfigNode configNode) {
-        if (configNode.type == ConfigNode.NodeType.leaf) {
-            exportOneLeafNode(configNode);
+        if (configNode.type == ConfigNode.NodeType.LEAF) {
+            exportLeaf(configNode);
         }
         
-        else if (configNode.type == ConfigNode.NodeType.leaf_list) {
-            exportOneLeafListNode(configNode);
+        else if (configNode.type == ConfigNode.NodeType.LEAF_LIST) {
+            exportLeafList(configNode);
         }
         
-        else if (configNode.type == ConfigNode.NodeType.container) {
-            exportOneContainerNode(configNode);
+        else if (configNode.type == ConfigNode.NodeType.CONTAINER) {
+            exportContainer(configNode);
             
             for (ConfigNode node:configNode.children) {
                 exportOneNode(node);
             }
         }
         
-        else if (configNode.type == ConfigNode.NodeType.list) {
-            exportOneListNode(configNode);
+        else if (configNode.type == ConfigNode.NodeType.LIST) {
+            exportList(configNode);
 
             for (ConfigNode node:configNode.children) {
                 exportOneNode(node);
@@ -174,9 +174,9 @@ class ConfigExportPDD extends ConfigExport{
     }
     
     @Override
-    void exportOneLeafNode(ConfigNode configNode) {
+    void exportLeaf(ConfigNode configNode) {
         
-        if (configNode.type != ConfigNode.NodeType.leaf)
+        if (configNode.type != ConfigNode.NodeType.LEAF)
             return;
         
         /* only configurable parameter should be export to PDD document */
@@ -202,7 +202,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getHierarchyName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
@@ -245,9 +245,9 @@ class ConfigExportPDD extends ConfigExport{
     }
 
     
-    void exportOneLeafListNode(ConfigNode configNode) {
+    void exportLeafList(ConfigNode configNode) {
         
-        if (configNode.type != ConfigNode.NodeType.leaf_list)
+        if (configNode.type != ConfigNode.NodeType.LEAF_LIST)
             return;
         
         Label label;
@@ -263,7 +263,10 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NAME,curRow, configNode.getHierarchyName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            sysParamSheet.addCell(label);
+            
+            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
 
             label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
@@ -282,9 +285,9 @@ class ConfigExportPDD extends ConfigExport{
     }
     
     
-    void exportOneListNode(ConfigNode configNode) {
+    void exportList(ConfigNode configNode) {
         
-        if (configNode.type != ConfigNode.NodeType.list)
+        if (configNode.type != ConfigNode.NodeType.LIST)
             return;
         
         Label label;
@@ -299,7 +302,10 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NAME,curRow, configNode.getHierarchyName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            sysParamSheet.addCell(label);
+            
+            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
@@ -352,9 +358,9 @@ class ConfigExportPDD extends ConfigExport{
     }
     
     
-    void exportOneContainerNode(ConfigNode configNode) {
+    void exportContainer(ConfigNode configNode) {
         
-        if (configNode.type != ConfigNode.NodeType.container)
+        if (configNode.type != ConfigNode.NodeType.CONTAINER)
             return;
         
         Label label;
@@ -368,7 +374,10 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NAME,curRow, configNode.getHierarchyName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            sysParamSheet.addCell(label);
+            
+            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
