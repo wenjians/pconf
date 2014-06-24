@@ -54,7 +54,13 @@ public class PConfMain {
         new PConfCommand("-pyang",  0,    ""),
         new PConfCommand("-pdd",    1,    ""),
     };
-        
+    
+    static PConfError errProc;
+    static ConfigTree configTree;
+    static YangParser   yangPaser;
+    static YangFileTree yangTree;
+    static YinParser  yinParser;
+    
     static PConfCommand getCommand(String cmd) {
         for (int i=0; i<commandList.length; i++) {
             if (cmd.contentEquals(commandList[i].command))
@@ -73,23 +79,15 @@ public class PConfMain {
     */
     public static void main(String[] args) 
     {
-        //testShell();
-        //return;
-        
-        PConfError errProc = PConfError.getInstance();
-        
-        
-        //System.out.println(commandList.length);
+        errProc = PConfError.getInstance();
         
         if (args.length < 1) {
             printHelpMsg();
-            //parseTest();
             return;
         }
         
         int argc = 0;
         PConfCommand command = null;
-        //System.out.println("total argument count:" + args.length);
                 
         while (argc < args.length)
         {
@@ -116,33 +114,48 @@ public class PConfMain {
         
         errProc.checkError(); 
         
-        
         for (int idx=0; idx<commandList.length; idx++) {
-            
             if (!commandList[idx].isParamSet())
                 continue;
             
-            System.out.format("%d: %7s %5d %s\n", 
-                              idx, 
-                              commandList[idx].command, 
-                              commandList[idx].paramCnt, 
-                              commandList[idx].paramStr);
+            System.out.format("%d: %7s %5d %s\n", idx,  commandList[idx].command, 
+                              commandList[idx].paramCnt,commandList[idx].paramStr);
         }
         
-        
-        String yangPath = commandList[COMMAND_YANG_DIR].paramStr;
-        String yinPath  = commandList[COMMAND_YIN_DIR].paramStr;
-        
-        if ((yangPath.length() == 0) || (yinPath.length() == 0))
+        if ((commandList[COMMAND_YANG_DIR].paramStr.length() == 0) || 
+            (commandList[COMMAND_YIN_DIR].paramStr.length() == 0))
         {
             errProc.addMessage("Both Yang input and output file must specified!\n");
             errProc.checkError();
         }
+
+        yangPaser  = new YangParser();
+        yangTree   = new YangFileTree();
+        yinParser  = new YinParser();
+        
+        parseYang2Yin();
+        
+        parseYinFiles();
         
 
+        String pddFile = commandList[COMMAND_PDD].paramStr;
+        if (pddFile.length() != 0) {
+            System.out.print("now export PDD document ...");
+            
+            ConfigExportPDD exportPdd = new ConfigExportPDD();
+            
+            exportPdd.export(pddFile, configTree);
+            
+            System.out.println(" done!");
+        }
+    }
+
+    static void parseYang2Yin() {
+        String yangPath = commandList[COMMAND_YANG_DIR].paramStr;
+        String yinPath  = commandList[COMMAND_YIN_DIR].paramStr;
+        
         boolean result = true;
-        YangParser   yangPaser  = new YangParser();
-        YangFileTree yangTree   = new YangFileTree();
+
                 
         if (commandList[COMMAND_PYANG].isParamSet())
             yangPaser.enabletYang2Yin();
@@ -163,60 +176,33 @@ public class PConfMain {
 
         if ((!result) || (!yangTree.validation()))  {
             errProc.addMessage("process the yang failure!");
-            errProc.checkError();
-        }
-        
-        //System.out.println("\n\n\nYang2Yin paser finished, Yang file tree:\n" + yangTree + "\n\n\n");
-        
-        System.out.println("\n\n\nNow Yin paser to Configuration Tree ... \n\n\n");
-        
-        
-        ConfigTree configTree = new ConfigTree();
-        
-        /* add the built-in type to Configure Tree */
-        for (String type: ConfndBuiltin.getBuiltinTypes()) {
-        	configTree.addTypeDef("", type, new ConfndBuiltin(type));
-        }
-
-        
-        YinParser  yinParser  = new YinParser();
-        yinParser.setConfigTree(configTree);
-        yinParser.setYinFileDirectory(yinPath);
-        yinParser.setYangFileTree(yangTree);
-        
-        result = yinParser.parseYangFileTree();
-        
-        if (!result)  {
-            errProc.addMessage("error process yin files!");
         }
         
         errProc.checkError();
-        
-        /*
-        System.out.println("Yin Parser finished, now begining to print the ConfigTree\n");
-        System.out.println("the following are the data type table definition:\n" 
-                         + configTree.toStringTypedef());
-        System.out.print("\n\n");
-        System.out.println("the following are the Config Parameter table:\n" 
-                         + configTree.toStringAllConfigModule());
-        */
-        
-        
-        
-        String pddFile = commandList[COMMAND_PDD].paramStr;
-        if (pddFile.length() != 0) {
-            System.out.print("now export PDD document ...");
-            
-            ConfigExportPDD exportPdd = new ConfigExportPDD();
-            
-            exportPdd.export(pddFile, configTree);
-            
-            System.out.println(" done!");
-        }
-        
-                
     }
+    
+    
+    static void parseYinFiles() {
+        System.out.println("\n\n\nNow Yin paser to Configuration Tree ... \n\n\n");
 
+        String yinPath  = commandList[COMMAND_YIN_DIR].paramStr;
+
+        configTree = new ConfigTree();
+        
+        /* add the built-in type to Configure Tree */
+        ConfigBuiltin.Init();
+        for (String type: ConfigBuiltin.getYangBuiltinTypes()) {
+            configTree.addTypedef("", type, new ConfigBuiltin(type));
+        }
+
+        yinParser.setConfigTree(configTree);
+        yinParser.setYinFileDirectory(yinPath);
+        yinParser.setYangFileTree(yangTree);        
+        yinParser.parseYangFileTree();
+        
+        errProc.checkError();        
+    }
+    
     
     private static void printHelpMsg() {
         String helpMsg = "";

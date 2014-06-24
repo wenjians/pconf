@@ -56,13 +56,13 @@ public final class YinParser {
 
             configMod.setYangModule(yangModule);
             //configMod.setName(yangModule.moduleFile.getYangFileName());
-            result = parseYangFileOneXML(configMod, yangModule);
+            result = parseOneYinFile(configMod, yangModule);
             if (!result) 
                 return result;
             
             if (yangModule.isInternalModule()) {
                 for (YangFile yangFile: yangModule.getSubmoduleList()) {
-                    result = parseYangFileOneXML(configMod, yangFile);
+                    result = parseOneYinFile(configMod, yangFile);
                     if (!result) 
                         return result;
                 }            
@@ -75,7 +75,7 @@ public final class YinParser {
     }
 
 
-    public boolean parseYangFileOneXML(ConfigModule configMod, YangFile yangFile) {
+    public boolean parseOneYinFile(ConfigModule configMod, YangFile yangFile) {
         boolean result = true;
         
         String xmlFileName = getYinFileName(yangFile);
@@ -98,7 +98,7 @@ public final class YinParser {
             
             for (int i=0; i<nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
-                result = parseOneModuleFile(configMod, yangFile, node);
+                result = parseModule(configMod, yangFile, node);
                 if (!result)
                     break;
             }
@@ -182,7 +182,7 @@ public final class YinParser {
     }
     
     
-    private boolean parseOneModuleFile(ConfigModule configModule, YangFile yangFile, Node node) {
+    private boolean parseModule(ConfigModule configModule, YangFile yangFile, Node node) {
         boolean result = true;
         //System.out.println("[" + node.getNodeName() + "," + node.getNodeType() + ", " + node.getNodeValue() + "] ");
         
@@ -200,7 +200,6 @@ public final class YinParser {
             }
         }
         
-        
         // module prefix take as the first module
         else if (keyword.contentEquals("prefix")) { 
             String configClientModuleName = xmlStmnt.getAttribute("value").trim(); 
@@ -213,9 +212,10 @@ public final class YinParser {
             
             String moduleName = xmlStmnt.getAttribute("module").trim();
             
+            refer.referType = ReferYangFile.ReferType.refer_import;
             refer.prefix    = getSubelementValue(xmlStmnt, SUB_ELE_ATTR, "prefix", "value");
             refer.yangFile  = yangFileTree.getYangFile(moduleName);
-            refer.referType = ReferYangFile.ReferType.refer_import;
+            
             if (refer.yangFile == null) {
                 errProc.addMessage(String.format("module <%s> is not parsed yet!\n", moduleName));
                 return false;
@@ -226,9 +226,10 @@ public final class YinParser {
         else if (keyword.contentEquals("include")) {
             ReferYangFile refer = new ReferYangFile();
             
+            refer.referType = ReferYangFile.ReferType.refer_include;
             refer.prefix    = getSubelementValue(xmlStmnt, SUB_ELE_ATTR, "prefix", "value");
             refer.yangFile  = yangFileTree.getYangFile(refer.getModuleName());
-            refer.referType = ReferYangFile.ReferType.refer_include;
+            
             if (refer.yangFile == null) {
                 errProc.addMessage(String.format("module <%s> is not parsed yet!\n", 
                                                  refer.getModuleName()));
@@ -242,45 +243,18 @@ public final class YinParser {
                  keyword.contentEquals("list")      ||
                  keyword.contentEquals("leaf-list") ||
                  keyword.contentEquals("container")) {
-                     
-            result = parseOneYangNode(configModule, yangFile, node);
+            result = parseOneNode(configModule, yangFile, node);
         }
-        
+
         else {
-            //System.out.println("unknow items" + keyword + " in yang file " + yangFile.getYangFileName());
+        	// do nothing for unsupported node type
         }
-        
-        
-        /*
-        else if (keyword.contentEquals("typedef") ) {
-            result = parseYangTypeDef(configModule, yangFile, xmlStmnt);
-        }
-        
-        else if (keyword.contentEquals("leaf")) {
-            result = parseYangLeaf(configModule, yangFile, xmlStmnt);
-        }
-        
-        else if (keyword.contentEquals("list")) {
-            System.out.println("\n\nthe list is not support yet!\n\n");
-            result = parseYangList(configModule, yangFile, xmlStmnt);
-        }
-        
-        else if (keyword.contentEquals("leaf-list")) {
-            System.out.println("\n\nthe leaf-list is not support yet!\n\n");
-            //result = parseYangLeaf(configModule, yangFile, xmlStmnt);
-        }
-        
-        else if (keyword.contentEquals("container")) {
-            System.out.println("\n\nthe container is not support yet!\n\n");
-            //result = parseYangLeaf(configModule, yangFile, xmlStmnt);
-        }
-        */
         
         return result;
     }
 
     
-    private boolean parseOneYangNode(ConfigNode configNode, YangFile yangFile, Node node) {
+    private boolean parseOneNode(ConfigNode configNode, YangFile yangFile, Node node) {
         boolean result = true;
         //System.out.println("[" + node.getNodeName() + "," + node.getNodeType() + ", " + node.getNodeValue() + "] ");
         
@@ -293,75 +267,75 @@ public final class YinParser {
         //System.out.println("parseOneYangNode:" + configNode);
         Element xmlStmnt  = (Element)node;
         
-        
         if (keyword.contentEquals("typedef")) {
-            result = parseYangTypeDef(configNode, yangFile, xmlStmnt);
+            result = parseTypedef(configNode, yangFile, xmlStmnt);
         }
         
         else if (keyword.contentEquals("leaf")) {
-            //System.out.println(configNode);
-            result = parseYangLeaf(configNode, yangFile, xmlStmnt);
+            result = parseLeaf(configNode, yangFile, xmlStmnt);
         }
         
         else if (keyword.contentEquals("list")) {
             //System.out.println("\n\nthe list is not support yet!\n\n");
-            result = parseYangList(configNode, yangFile, xmlStmnt);
+            result = parseList(configNode, yangFile, xmlStmnt);
         }
         
         else if (keyword.contentEquals("leaf-list")) {
             //System.out.println("\n\nthe leaf-list is not support yet!\n\n");
-            result = parseYangLeafList(configNode, yangFile, xmlStmnt);
+            result = parseLeafList(configNode, yangFile, xmlStmnt);
         }
         
         else if (keyword.contentEquals("container")) {
-            //System.out.println("\n\nthe container is not support yet!\n\n");
-            result = parseYangContainer(configNode, yangFile, xmlStmnt);
+            result = parseContainer(configNode, yangFile, xmlStmnt);
+        }
+        
+        // unsupported type, do nothing here
+        else {
+         
         }
         
         
         return result;
     }
 
-    private boolean parseYangTypeDef(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
+    private boolean parseTypedef(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
         
+    	boolean result = true;
     	//System.out.println("\n\nparseYangTypeDef\n");
-    	ConfndTypedef typeDef = new ConfndTypedef();
+    	ConfigTypedef type_def = new ConfigTypedef();
         
-        typeDef.setYangFile(yangFile);
-        typeDef.setYangModule(yangFile.getParentModule());
-        typeDef.setParent(configNode);
+    	type_def.setParent(configNode);
+        type_def.setYangFile(yangFile);
+        type_def.setYangModule(yangFile.getParentModule());
+        type_def.setName(xmlElement.getAttribute("name").trim());
         
-        typeDef.setName(xmlElement.getAttribute("name").trim());
-        
-        //System.out.println("name=" + typeDef.getName() + ", YangFile=" + typeDef.getYangFile().getYangFileName());
-                
-        parseStatements(typeDef, yangFile, xmlElement);
+        result = parseStatements(type_def, yangFile, xmlElement);
         
         //configNode.addChild(typeDef);
-        configTree.addTypeDef(yangFile.getModuleName(), typeDef.getName(), typeDef);
+        configTree.addTypedef(yangFile.getModuleName(), type_def.getName(), type_def);
         //System.out.println("name=" + typeDef.getName() + ", YangFile=" + typeDef.getYangFile().getYangFileName());
         //System.out.println(typeDef);
         
         //System.out.println("in parseYangTypeDef: def_name:"+ typeDef.getName() + ":"+ typeDef.dataType);
         
-        return true;
+        return result;
         
     }
     
     
-    private boolean parseYangLeaf(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
+    private boolean parseLeaf(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
         
         //System.out.println("parse leaf, parent:" + configNode.getName());
         //System.out.println("parse leaf, parent:" + configNode);
         
         boolean result = false;
-        ConfndLeaf leaf = new ConfndLeaf();
         
+        ConfigLeaf leaf = new ConfigLeaf();
+        
+        leaf.setParent(configNode);
         leaf.setYangFile(yangFile);
         leaf.setYangModule(yangFile.getParentModule());
         leaf.setName(xmlElement.getAttribute("name").trim());
-        leaf.setParent(configNode);
-        
         
         result = parseStatements(leaf, yangFile, xmlElement);
         
@@ -371,16 +345,15 @@ public final class YinParser {
     }
     
     
-    private boolean parseYangLeafList(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
+    private boolean parseLeafList(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
         
         boolean result = false;
-        ConfndLeafList leaflist = new ConfndLeafList();
+        ConfigLeafList leaflist = new ConfigLeafList();
         
+        leaflist.setParent(configNode);
         leaflist.setYangFile(yangFile);
         leaflist.setYangModule(yangFile.getParentModule());
         leaflist.setName(xmlElement.getAttribute("name").trim());
-        leaflist.setParent(configNode);
-        
         
         result = parseStatements(leaflist, yangFile, xmlElement);
         
@@ -389,70 +362,76 @@ public final class YinParser {
         return result;
     }
     
-    private boolean parseYangList(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
+    private boolean parseList(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
         
         boolean result = false;
-        ConfndList confList = new ConfndList();
+        ConfigList confList = new ConfigList();
         
         confList.setYangFile(yangFile);
         confList.setYangModule(yangFile.getParentModule());
         confList.setParent(configNode);
         confList.setName(xmlElement.getAttribute("name").trim());
         
-        //System.out.println("list: " + confList.getName());
+        configNode.addChild(confList);
         
+        //System.out.println("list: " + confList.getName());
+        // firstly will parse the statements directly belong to list
+        result = parseStatements(confList, yangFile, xmlElement);
+        if (!result) {
+            return result;
+        }
+        
+        /* go through all the sub-node, and parse the sub-node, 
+         * including leaf, leaf-list, list, container, typedef
+         */
         NodeList nodeList = xmlElement.getChildNodes();            
         if (nodeList == null) 
             return false;
         
         for (int i=0; i<nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
-            
-            String keyword = node.getNodeName();
-            
             if (node.getNodeType() != Node.ELEMENT_NODE)
                 continue;
             
             //System.out.println("parse list sub-node:" + node.getNodeName());
             Element xmlStmnt  = (Element)node;
+            String keyword = node.getNodeName();
             
             if (keyword.contentEquals("key")) {
                 confList.listKey = xmlStmnt.getAttribute("value").trim();
             }
             
-            else if (keyword.contentEquals("max-elements")){
-                confList.maxElements = xmlStmnt.getAttribute("value").trim();
-                //System.out.println("max-elements=" + confList.maxElements);
+            else {
+                result = parseOneNode(confList, yangFile, node);
             }
-            
-            result = parseStatements(confList, yangFile, xmlElement);
-            if (!result)
+
+            if (!result) {
                 break;
-                
-            //System.out.println(confList);
-            result = parseOneYangNode(confList, yangFile, node);
-            if (!result)
-                break;
+            }
         }
-        
-        configNode.addChild(confList);
-        
+
         return result;
     }
     
     
-    private boolean parseYangContainer(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
+    private boolean parseContainer(ConfigNode configNode, YangFile yangFile, Element xmlElement) {
         
         boolean result = false;
-        ConfndContainer container = new ConfndContainer();
+        ConfigContainer container = new ConfigContainer();
         
+        container.setParent(configNode);
         container.setYangFile(yangFile);
         container.setYangModule(yangFile.getParentModule());
-        container.setParent(configNode);
         container.setName(xmlElement.getAttribute("name").trim());
         
-        //System.out.println("list: " + confList.getName());
+        configNode.addChild(container);
         
+        // first parse the statement which belong to container directly
+        result = parseStatements(container, yangFile, xmlElement);
+        if (!result)
+            return result;
+        
+        // then parse the sub-nodes, including leaf, list, container, leaf-list and typedef
         NodeList nodeList = xmlElement.getChildNodes();            
         if (nodeList == null) 
             return false;
@@ -460,35 +439,13 @@ public final class YinParser {
         for (int i=0; i<nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             
-            //String keyword = node.getNodeName();
-            
             if (node.getNodeType() != Node.ELEMENT_NODE)
                 continue;
-            
-            //System.out.println("parse list sub-node:" + node.getNodeName());
-            //Element xmlStmnt  = (Element)node;
-            
-            /*
-            if (keyword.contentEquals("key")) {
-                confList.listKey = xmlStmnt.getAttribute("value").trim();
-            }
-            
-            else if (keyword.contentEquals("max-elements")){
-                confList.maxElements = xmlStmnt.getAttribute("value").trim();
-            }
-            */
-            
-            result = parseStatements(container, yangFile, xmlElement);
-            if (!result)
-                break;
-                
-            //System.out.println(confList);
-            result = parseOneYangNode(container, yangFile, node);
+
+            result = parseOneNode(container, yangFile, node);
             if (!result)
                 break;
         }
-        
-        configNode.addChild(container);
         
         return result;
     }
@@ -515,31 +472,49 @@ public final class YinParser {
             }
             
             else if (keyword.contentEquals("type")){
-            	//System.out.println(" parse the type");
-                parseStatementType(configNode, (Element)xmlStmntNode, yangFile);
+                parseType(configNode, (Element)xmlStmntNode, yangFile);
             }
             
             else if (keyword.contentEquals("units")){
-                //System.out.println(" parse the type");
                 configNode.setUnits(xmlStmnt.getAttribute("name").trim());
-                //System.out.println(" unit" + configNode.getUnits());
             }
             
             else if (keyword.contentEquals("default")) {
                 configNode.setDefaultVal(xmlStmnt.getAttribute("value").trim());
             }
             
+            else if (keyword.contentEquals("min-elements")) {
+                configNode.minElements = xmlStmnt.getAttribute("value").trim();
+            }
+            
+            else if (keyword.contentEquals("max-elements")) {
+                configNode.maxElements = xmlStmnt.getAttribute("value").trim();
+            }
+            
             else if (keyword.contentEquals("config")) {
                 configNode.configurable = xmlStmnt.getAttribute("value").trim();
             }            
             
+            else if (keyword.contentEquals("status")) {
+                configNode.setStatus(xmlStmnt.getAttribute("value").trim());
+            }
+            
+            else if (keyword.contentEquals("ordered-by")) {
+                configNode.orderedBy = xmlStmnt.getAttribute("value").trim();
+            }
+
+            else if (keyword.contentEquals("mandatory")) {
+                configNode.mandatory = xmlStmnt.getAttribute("value").trim();
+            }
+            
             else if (keyword.contentEquals("must")) {
-                System.out.println("\n\n\nattribute 'must' not finished yet\n\n\n\n");
-                //configNode.setDefaultVal(xmlStmnt.getAttribute("value").trim());
+                //System.out.println("\n\n\nattribute 'must' not finished yet\n\n\n\n");
+                
+                parseMust(configNode, (Element)xmlStmntNode, yangFile);
             }
             
             else if (keyword.contentEquals("when")) {
-                System.out.println("\n\n\nattribute 'when' not finished yet\n\n\n\n");
+                System.out.println("\nattribute 'when' not finished yet\n");
                 //configNode.setDefaultVal(xmlStmnt.getAttribute("value").trim());
             }
             
@@ -551,15 +526,6 @@ public final class YinParser {
                                    + "error in Yang file <" + yangFile.getYangFileName() 
                                    + "> with node of " + configNode.getName());
                 break;
-                //}
-                
-                /*
-                ConfndType type = (ConfndType)configNode;
-                type.patternList.add(xmlStmnt.getAttribute("value").trim());
-                
-                System.out.println("patter value=" + xmlStmnt.getAttribute("value").trim() );
-                System.out.println(type);
-                */
             }
             
             else if (keyword.endsWith("gw:scope")) {
@@ -581,39 +547,40 @@ public final class YinParser {
             else if (keyword.endsWith("gw:notes")) {
                 configNode.setNotes(xmlStmnt.getAttribute("string").trim());
             }
-            
-            if (errProc.hasErrorMsg())
-                return false;
         }
+        
+        if (errProc.hasErrorMsg())
+            return false;
         
         return true;
     }
 
 
      
-    private boolean parseStatementType(ConfigNode configNode, Element xmlStmnt, YangFile yangFile) {
+    private boolean parseType(ConfigNode configNode, Element xmlStmnt, YangFile yangFile) {
         NodeList stmntList = xmlStmnt.getChildNodes();
         if (stmntList == null) 
             return false;
         
         String fullTypeName = xmlStmnt.getAttribute("name").trim();
         //System.out.println("parseStatementType fullTypeName=" + fullTypeName);
-        ConfndType dataType = new ConfndType();
-        dataType.setYangFile(yangFile);
-        dataType.setParent(configNode);
-        dataType.parseFullName(fullTypeName);
+
+        ConfigType dataType = new ConfigType();
         
-        //System.out.println("parseStatementType type_name=" + dataType.definedModule + ":" + dataType.typeName);
+        dataType.setParent(configNode);
+        dataType.setYangFile(yangFile);
+        dataType.setYangModule(yangFile.getParentModule());
+        dataType.parseFullName(fullTypeName);
         
         configNode.dataType = dataType;
         
-        ConfndTypedef typedef = configTree.getTypeDef(dataType);
+        ConfigTypedef typedef = configTree.getTypeDef(dataType);
         if (typedef == null) {
             errProc.addMessage(String.format("type (%s) not defined in Yang file (%s)\n", 
                                              fullTypeName, yangFile.getYangFileName()));
             
-            errProc.addMessage("module name: " + dataType.definedModule 
-            		         + ", type_name=" + dataType.typeName);
+            errProc.addMessage("module name: " + dataType.defModule 
+            		         + ", type_name=" + dataType.getName());
             
             //System.out.println(configTree.typeDefs);
             //System.out.println(yangFile);
@@ -624,11 +591,6 @@ public final class YinParser {
         dataType.setName(typedef.getName());
         dataType.typeDefinition = typedef;
         
-        //String Name = "type:"+dataType.getName();
-        //while 
-        //System.out.println("type:"+dataType.getName() + ", definition=" + typedef.getName());
-        //System.out.if (typedef.dataType.typeDefinition.getName())
-        
         for (int i=0; i<stmntList.getLength(); i++){
 
             Node xmlStmntNode = stmntList.item(i);
@@ -638,53 +600,30 @@ public final class YinParser {
             Element xmlSubStmnt = (Element)xmlStmntNode;
             String keyword   = xmlSubStmnt.getNodeName();
             
-            //System.out.println("parseStatementType: keyword=" + keyword );
-            
             if (keyword.contentEquals("pattern")) {
-                //ConfndType type = (ConfndType)configNode;
                 dataType.patternList.add(xmlSubStmnt.getAttribute("value").trim());
-                
-                //System.out.println("patter value=" + xmlSubStmnt.getAttribute("value").trim() );
-                //System.out.println(type);
-                
-                /*
-                errProc.addMessage(String.format("error happened in typ of leaf (%s) of Yang file (%s)\n", 
-                                   configNode.getName(), yangFile.getYangFileName()));
-                errProc.addMessage("patter is not supported yet");
-                return false;
-                */
             }
             
             else if (keyword.contentEquals("enum")){
-                DataTypeChoice typeChoice = new DataTypeChoice();
+                ConfigDataEnum typeChoice = new ConfigDataEnum();
                 
                 typeChoice.name  = xmlSubStmnt.getAttribute("name").trim();
                 typeChoice.value = getSubelementValue(xmlSubStmnt, SUB_ELE_ATTR, "value", "value");
                 typeChoice.descr = getSubelementValue(xmlSubStmnt, SUB_ELE_CTXT, "description", "text");
+                typeChoice.status = getSubelementValue(xmlSubStmnt, SUB_ELE_ATTR, "status", "value");
                 
+                if (typeChoice.status.length() != 0)
+                    System.out.println("parseType: enum: " + typeChoice);
+               
                 dataType.enumValList.add(typeChoice);
-                
-                //System.out.println(typeChoice);
             }
             
             else if (keyword.contentEquals("length")) {
                 dataType.length = xmlSubStmnt.getAttribute("value").trim();
-                /*
-                errProc.addMessage(String.format("error happened in typ of leaf (%s) of Yang file (%s)\n", 
-                        configNode.getName(), yangFile.getYangFileName()));
-                errProc.addMessage(" length is not defined yet");
-                return false;
-                */
             }
             
             else if (keyword.contentEquals("range")) {
                 dataType.range = xmlSubStmnt.getAttribute("value").trim();
-                /*
-                errProc.addMessage(String.format("error happened in typ of leaf (%s) of Yang file (%s)\n", 
-                        configNode.getName(), yangFile.getYangFileName()));
-                errProc.addMessage("range is not defined yet");
-                return false;
-                */
             }
             
         }
@@ -694,5 +633,34 @@ public final class YinParser {
 
         return true;
     }
+
+    /*
+       <must condition="../primary-ip != 0.0.0.0">
+          <error-message>
+            <value>primary IP address must be configure</value>
+          </error-message>
+        </must>
+    */
+    private boolean parseMust(ConfigNode configNode, Element xmlStmnt, YangFile yangFile) {
+
+        System.out.println("parseMust =" + xmlStmnt.getNodeName());
         
+        if (!configNode.isConfigParameter()) {
+            errProc.addMessage("Unsupportted 'must' in config node " + configNode.getName()
+                             + " in Yang file <" + yangFile.getYangFileName() + ">\n");
+            return false;
+        }
+
+        
+        ConfigDataMust dataMust = new ConfigDataMust();
+
+        dataMust.condition = xmlStmnt.getAttribute("condition").trim();
+        dataMust.errMsg = getSubelementValue(xmlStmnt, SUB_ELE_ATTR, "error-message", "value");
+        dataMust.description = getSubelementValue(xmlStmnt, SUB_ELE_CTXT, "description", "text");
+        configNode.limit_must.add(dataMust);
+        
+        System.out.println("parseMust, node: " + configNode.getName() + dataMust);
+
+        return true;
+    }    
 }

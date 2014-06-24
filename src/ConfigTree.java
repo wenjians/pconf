@@ -8,13 +8,13 @@ public class ConfigTree {
 
     List<ConfigModule> moduleList;
     
-    HashMap<String , ConfndTypedef> typeDefs;
+    HashMap<String , ConfigTypedef> typeDefs;
     
     
     ConfigTree() {
         moduleList = new ArrayList<ConfigModule> ();
         
-        typeDefs = new HashMap<String , ConfndTypedef> ();
+        typeDefs = new HashMap<String , ConfigTypedef> ();
         
         //addBuitinTypes();
     }
@@ -23,10 +23,10 @@ public class ConfigTree {
         moduleList.add(_mod);
     }
     
-    void addTypeDef(String moduleName, String typeName, ConfndTypedef typedef) {
+    void addTypedef(String moduleName, String typeName, ConfigTypedef typedef) {
         String key = typeName;
         
-        if (!ConfndBuiltin.isBuiltinType(typeName))
+        if (!ConfigBuiltin.isYangBuiltin(typeName))
             key = moduleName + ":" + typeName;
         
         typeDefs.put(key, typedef);
@@ -34,7 +34,7 @@ public class ConfigTree {
     }
     
     
-    ConfndTypedef getTypeDef(ConfndType dataType) {
+    ConfigTypedef getTypeDef(ConfigType dataType) {
         /*
         String moduleName = "";
         
@@ -50,10 +50,10 @@ public class ConfigTree {
         */
         
         //System.out.println("getTypeDef, fullname=<" + dataType.definedModule + ":" + dataType.typeName + ">");
-        if (dataType.definedModule==null || dataType.definedModule.length()==0)
-            return typeDefs.get(dataType.typeName);
+        if (dataType.defModule==null || dataType.defModule.length()==0)
+            return typeDefs.get(dataType.getName());
         
-        return typeDefs.get(dataType.definedModule + ":" + dataType.typeName);
+        return typeDefs.get(dataType.defModule + ":" + dataType.getName());
     }
     
     String toStringTypedef() {

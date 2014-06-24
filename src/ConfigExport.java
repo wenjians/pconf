@@ -1,6 +1,6 @@
 
 
-import java.util.*;
+//import java.util.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -120,17 +120,18 @@ class ConfigExportPDD extends ConfigExport{
 
     final static int COLUMN_MODULE     = 0;
     final static int COLUMN_NODE_TYPE  = 1;
-    final static int COLUMN_NAME       = 2;
-    final static int COLUMN_CONF_ABLE  = 3;
-    final static int COLUMN_SCOPE      = 4;
-    final static int COLUMN_DESCP      = 5;
-    final static int COLUMN_FORMAT     = 6;
-    final static int COLUMN_UNITS      = 7;
-    final static int COLUMN_RANGE      = 8;
-    final static int COLUMN_DEFAULT    = 9;
-    final static int COLUMN_ADD_REL    =10;
-    final static int COLUMN_MOD_REL    =11;
-    final static int COLUMN_NOTES      =12;
+    final static int COLUMN_HIERARCHY  = 2;
+    final static int COLUMN_NAME       = 3;
+    final static int COLUMN_CONF_ABLE  = 4;
+    final static int COLUMN_SCOPE      = 5;
+    final static int COLUMN_DESCP      = 6;
+    final static int COLUMN_FORMAT     = 7;
+    final static int COLUMN_UNITS      = 8;
+    final static int COLUMN_RANGE      = 9;
+    final static int COLUMN_DEFAULT    =10;
+    final static int COLUMN_ADD_REL    =12;
+    final static int COLUMN_MOD_REL    =13;
+    final static int COLUMN_NOTES      =14;
 
 
     WritableWorkbook wwb;
@@ -151,8 +152,8 @@ class ConfigExportPDD extends ConfigExport{
         
         
         if ((configNode.dataType.enumValList != null) &&
-            (configNode.dataType.typeName.contentEquals("enumeration"))) {
-            for (DataTypeChoice choice: configNode.dataType.enumValList) {
+            (configNode.dataType.getName().contentEquals("enumeration"))) {
+            for (ConfigDataEnum choice: configNode.dataType.enumValList) {
                 
                 if (choice.descr.length() == 0)
                     continue;
@@ -198,7 +199,10 @@ class ConfigExportPDD extends ConfigExport{
             sysParamSheet.addCell(label);
             
             //label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
-            label = new Label(COLUMN_NAME,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
+            sysParamSheet.addCell(label);
+            
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getHierarchyName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
@@ -213,7 +217,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_DESCP,curRow, getDescription(configNode), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_FORMAT,curRow, configNode.dataType.getTypeName(), normalFormat);
+            label = new Label(COLUMN_FORMAT,curRow, configNode.dataType.getGwBuiltinName(), normalFormat);
             sysParamSheet.addCell(label);
             
             //label = new Label(COLUMN_UNITS,curRow, configNode.dataType.getUnits(), normalFormat);
@@ -248,7 +252,7 @@ class ConfigExportPDD extends ConfigExport{
         
         Label label;
         
-        ConfndLeafList leaflist = (ConfndLeafList)configNode;
+        ConfigLeafList leaflist = (ConfigLeafList)configNode;
             
         try {
 
@@ -259,7 +263,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NAME,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_NAME,curRow, configNode.getHierarchyName(), normalFormat);
             sysParamSheet.addCell(label);
 
             label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
@@ -284,7 +288,7 @@ class ConfigExportPDD extends ConfigExport{
             return;
         
         Label label;
-        ConfndList list = (ConfndList)configNode;
+        ConfigList list = (ConfigList)configNode;
             
         try {
 
@@ -295,7 +299,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NAME,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_NAME,curRow, configNode.getHierarchyName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
@@ -364,7 +368,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NAME,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_NAME,curRow, configNode.getHierarchyName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
@@ -401,7 +405,8 @@ class ConfigExportPDD extends ConfigExport{
             
             sysParamSheet.setColumnView(COLUMN_MODULE,   10);
             sysParamSheet.setColumnView(COLUMN_NODE_TYPE,10);
-            sysParamSheet.setColumnView(COLUMN_NAME,     30);
+            sysParamSheet.setColumnView(COLUMN_NAME,     15);
+            sysParamSheet.setColumnView(COLUMN_HIERARCHY,30);
             sysParamSheet.setColumnView(COLUMN_CONF_ABLE,10);
             sysParamSheet.setColumnView(COLUMN_SCOPE,    10);
             sysParamSheet.setColumnView(COLUMN_DESCP,    50);
@@ -417,6 +422,8 @@ class ConfigExportPDD extends ConfigExport{
             labelHead = new Label(COLUMN_MODULE,curRow, "Module", headerFormat);
             sysParamSheet.addCell(labelHead);
             labelHead = new Label(COLUMN_NODE_TYPE,curRow, "NodeType", headerFormat);
+            sysParamSheet.addCell(labelHead);
+            labelHead = new Label(COLUMN_HIERARCHY,curRow, "hierarchy", headerFormat);
             sysParamSheet.addCell(labelHead);
             labelHead = new Label(COLUMN_NAME,curRow, "Name", headerFormat);  
             sysParamSheet.addCell(labelHead);

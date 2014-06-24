@@ -1,32 +1,42 @@
 
 
 
-//import java.io.File;
-//import java.io.IOException;
 import java.util.*;
 
-/*
-import jxl.Workbook;
-import jxl.write.Label;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-*/
-
-/**
- * 
- */
 
 /**
  * @author wenjians
  *
  */
+
+class ConfigDataMust {
+    String description;
+    String condition;
+    String errMsg;
+    
+    ConfigDataMust() {
+        description = "";
+        condition = "";
+        errMsg = "";
+    }
+
+    @Override
+    public String toString() {
+        return "XPathMust [description=" + description + ", appTag=" + condition 
+             + ", errMsg=" + errMsg + "]";
+    }
+}
+
 class ConfigNode {
-    static enum NodeType { invalid, module, container, leaf, leaf_list, list, data_type, type_def }
+
+	static enum NodeType { 
+		invalid, module, container, leaf, leaf_list, list, 
+		data_type, type_def, type_builtin 	
+	}
     
     static enum Scope { invalid, system, customer, element }
+    
+    static PConfError errProc = PConfError.getInstance();
     
     /* the node type, which is not support dynamic set later
      * it can not be set during construction file by descend classes
@@ -53,18 +63,25 @@ class ConfigNode {
     String name;
     String description;
     String defaultVal;
-    String limit_must;
     String limit_when;
     String units;
     String configurable;
+    String status;
+    String mandatory; /* only for leaf */
     
-    ConfndType dataType;
+    /* max and min elements is only valid for list and leaf-list */
+    String maxElements;
+    String minElements;
+    String orderedBy;
+    
+    ConfigType dataType;
+    List <ConfigDataMust> limit_must;
     
     /* the following is gw specific defined attribution */
     Scope  gw_scope;
-    String gw_add_release;
-    String gw_mod_release;
-    String gw_service_impact;
+    String gw_add_rel;
+    String gw_mod_rel;
+    String gw_service_impact;	/* service impact for the parameter changes */
     String gw_notes;
     String gw_feature_id;
         
@@ -78,12 +95,19 @@ class ConfigNode {
         defaultVal      = "";
         dataType        = null;
         configurable    = "true";
+        status			= "";
+        limit_must      = null;
+        maxElements = "";
+        minElements = "";
+        orderedBy = "";
+        
         gw_scope        = Scope.invalid;
-        gw_add_release  = "";
-        gw_mod_release  = "";
+        gw_add_rel  	= "";
+        gw_mod_rel  	= "";
         gw_service_impact = "";
         gw_notes        = "";
         gw_feature_id   = "";
+        
         
     }
     
@@ -93,6 +117,7 @@ class ConfigNode {
                 (type == NodeType.leaf_list) ||
                 (type == NodeType.list));
     }
+    
     
     //invalid, module, container, leaf, leaf_list, list, data_type, type_def
     
@@ -146,7 +171,15 @@ class ConfigNode {
     
     
 
-    public String getUnits() {
+    public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getUnits() {
         return units;
     }
 
@@ -155,19 +188,19 @@ class ConfigNode {
     }
 
     public String getAddRelease() {
-        return gw_add_release;
+        return gw_add_rel;
     }
 
     public void setAddRelease(String gw_add_release) {
-        this.gw_add_release = gw_add_release;
+        this.gw_add_rel = gw_add_release;
     }
 
     public String getModRelease() {
-        return gw_mod_release;
+        return gw_mod_rel;
     }
 
     public void setModRelease(String gw_mod_release) {
-        this.gw_mod_release = gw_mod_release;
+        this.gw_mod_rel = gw_mod_release;
     }
 
     public String getServiceImpact() {
@@ -240,8 +273,20 @@ class ConfigNode {
         return parent;
     }
 
+    /* set the parent of the current node, it will also inherit parameters
+     * from the parent.
+     */
     public void setParent(ConfigNode _parent) {
         this.parent = _parent;
+        
+        configurable = _parent.configurable;
+        status       = _parent.getStatus();
+        
+        gw_scope 		= _parent.gw_scope;
+        gw_add_rel 		= _parent.gw_add_rel;
+        gw_mod_rel 		= _parent.gw_mod_rel;
+        gw_feature_id 	= _parent.gw_feature_id;
+        gw_service_impact = _parent.gw_service_impact;
     }
 
     void setName(String _name)  { 
@@ -256,7 +301,7 @@ class ConfigNode {
     /* this function return the full path name, not include the module name
      * e.g. realm-table/ip-if/ip
      */
-    String getFullPathName() {
+    String getHierarchyName() {
         //String[] keyword;
         List<String> keyword = new ArrayList<String> ();
         String fullPathName="";
@@ -268,6 +313,9 @@ class ConfigNode {
             ) {
             keyword.add(parent.getName());
         }
+        
+        // add the module name
+        keyword.add(parent.getName());
         
         for (int i=keyword.size()-1; i>=0; i--) {
             fullPathName += keyword.get(i) + "/";
@@ -284,15 +332,22 @@ class ConfigNode {
 
     @Override
     public String toString() {
-        return "ConfigNode [yangFile=" + yangFile.getModuleName() 
-                + ", type=" + type + ", name=" + name + ", description=" + description 
-                + ", defaultVal=" + defaultVal + ", scopeVal=" + getScope()
-                + ", feature id = " + gw_feature_id
-                + ", add release=" + gw_add_release + ", mod release=" + gw_mod_release
+        return "ConfigNode [type=" + type.toString() + ", yangFile=" + yangFile.getModuleName() 
+                + ", name=" + name + ", parent=" + parent.getName() 
+                + ", description=" + description 
+                + ", type=" + dataType.getName() + ", units=" + units
+                + ", defaultVal=" + defaultVal 
+                + ", configurable" + configurable + ", status=" + status
+                + ", mandatory=" + mandatory
+                + ", scopeVal=" + getScope()
+                + ", add release=" + gw_add_rel + ", feature id = " + gw_feature_id 
+                + ", mod release=" + gw_mod_rel + ", gw_notes" + gw_notes
                 + ", service impact=" + gw_service_impact + "notes=" + gw_notes
-                + ", children=" + children + "]\n"; 
+                + ", children=" + children
+                + ", must=" + limit_must
+                + ", when=" + limit_when
+                + "]\n"; 
     }
-    
 }
 
 /**
@@ -352,39 +407,40 @@ class ConfigModule extends ConfigNode {
  * @author diag
  *
  */
-class ConfndContainer extends ConfigNode {
+class ConfigContainer extends ConfigNode {
 
     
-    ConfndContainer() {
+    ConfigContainer() {
         super();
         
         type = NodeType.container;
         children = new ArrayList<ConfigNode> ();
+        limit_must = new ArrayList <ConfigDataMust> ();
     }
 
     @Override
     public String toString() {
         return "ConfndContainer [" + super.toString() +"]";
     }
-    
-    
 }
 
 /**
  * @author diag
  *
  */
-class ConfndLeaf extends ConfigNode {
+class ConfigLeaf extends ConfigNode {
     
-    ConfndLeaf() {
+    ConfigLeaf() {
         super();
-        type     = NodeType.leaf;
+        
+        type = NodeType.leaf;
         children = null;
+        limit_must = new ArrayList <ConfigDataMust> () ;
     }
 
     @Override
     public String toString() {
-        return "ConfndLeaf [name=" + name + "]";
+        return "ConfndLeaf [name=" + name + super.toString() + "]" ;
     }
     
 }
@@ -394,78 +450,62 @@ class ConfndLeaf extends ConfigNode {
  * @author diag
  *
  */
-class ConfndLeafList extends ConfigNode {
+class ConfigLeafList extends ConfigNode {
 
-    String maxElements;
-    ConfndLeafList() {
+    
+    ConfigLeafList() {
         super();
+        
         type        = NodeType.leaf_list;
         children    = null;
-        maxElements = "";
+        
+        limit_must = new ArrayList <ConfigDataMust> ();
     }
 
+    
     @Override
     public String toString() {
-        return "ConfndLeafList [name=" + name + ", dataType=" + dataType.getName() + "]";
+        return "ConfndLeafList [name=" + name + ", dataType=" + dataType.getName() 
+              + super.toString() + "]";
     }
 }
 
 
-class ConfndList extends ConfigNode {
+class ConfigList extends ConfigNode {
 
     String listKey;
-    String maxElements;
     
-    ConfndList() {
+    ConfigList() {
         super();
         
         listKey = "";
-        maxElements = "";
-        
         type = NodeType.list;
         children = new ArrayList<ConfigNode> ();
+        limit_must = new ArrayList <ConfigDataMust> () ;
     }
     
-    //String get
     @Override
     public String toString() {
-        return "ConfndList [key=" + listKey
-                + ", maxElements=" + maxElements
-                + ", " + super.toString()
-                + "]";
+        return "ConfndList [key=" + listKey + ", " + super.toString() + "]";
     }
 
     
 }
 
 
-
-class ConfndTypedef extends ConfigNode {
+class ConfigTypedef extends ConfigNode {
     
-	//private String typeName;
-	
-    ConfndTypedef() {
+    ConfigTypedef() {
         super();
         
-        //typeName = "";
-        type = NodeType.type_def;
+        type 	 = NodeType.type_def;
+        children = null;
     }
-    
-    
-    /*
-    public String getTypeName() {        
-    	return typeName;
-	}
-
-    public void setTypeName(String typeName) { 
-    	this.typeName = typeName;    
-    }
-    */
     
     
     @Override
     public String toString() {
-        return "ConfndTypedef [yangFile=" + yangFile.getYangFileName() 
+        return "ConfndTypedef [yangFile=" + yangFile.getYangFileName()
         	 + ", name=" + getName()
         	 + ", description (len)=" + description.length()
         	 + ", dataType = " + dataType
@@ -474,32 +514,59 @@ class ConfndTypedef extends ConfigNode {
 }
 
 
-class ConfndBuiltin extends ConfndTypedef {
+class ConfigBuiltin extends ConfigTypedef {
     
-    /* where does the type defined, in module or submodule */
-    static String builtinTypes[] = { "enumeration", "union", "string", "int32", "uint32" };
-    
-    
-    ConfndBuiltin(String _name) {
-    	super();
-    	
-    	assert (isBuiltinType(name));
-    	
-        type = NodeType.type_def;
-        setName(_name);
+	static boolean inited = false;
+	
+	static Set<String> yangBuiltin = new HashSet<String> ();
+    static Set<String> gwBuiltin = new HashSet<String> ();
+
+    static void Init() {
+        if (inited)
+            return;
+
+        /* Yang built in types */
+        yangBuiltin.add("enumeration");
+        yangBuiltin.add("union");
+        yangBuiltin.add("string");
+        yangBuiltin.add("int32");
+        yangBuiltin.add("uint32");
+        
+        /* gateway built in types */
+        gwBuiltin.addAll(yangBuiltin);
+        gwBuiltin.add("ip-address");
+        gwBuiltin.add("ipv6-address");
+        gwBuiltin.add("ipv4-address");
+        
+        inited = true;
     }
     
-    static boolean isBuiltinType(String typeName) {
-        for (String type: builtinTypes) {
-            if (typeName.contentEquals(type))
-                return true;
-        }
+    static boolean isYangBuiltin(String typeName) {
+        if (yangBuiltin.contains(typeName))
+            return true;
         
         return false;
     }
     
-    static String[] getBuiltinTypes() {
-    	return builtinTypes;
+    static Set<String> getYangBuiltinTypes() {
+    	return yangBuiltin;
+    }
+    
+    
+    static boolean isGwBuiltin(String typeName) {
+        if (gwBuiltin.contains(typeName))
+            return true;
+        
+        return false;
+    }
+    
+    ConfigBuiltin(String _name) {
+    	super();
+    	
+    	assert (isYangBuiltin(name));
+    	
+        type = NodeType.type_builtin;
+        setName(_name);
     }
     
     @Override
@@ -509,105 +576,68 @@ class ConfndBuiltin extends ConfndTypedef {
     
 }
 
-class DataTypeChoice {
+class ConfigDataEnum {
     String name;
     String value;
     String descr;
+    String status;
     
-    DataTypeChoice() {
+    ConfigDataEnum() {
         name = "";
         value= "";
         descr = "";
+        status = "";
     }
 
     @Override
     public String toString() {
         return "DataTypeChoice [name=" + name + ", value=" + value
-                + ", description=" + descr + "]";
+                + ", description=" + descr + ", status=" + status + "]";
     }
     
     
 }
 
-class ConfndType extends ConfigNode {
+class ConfigType extends ConfigNode {
 
-    static Set<String> yangTypeSet = new HashSet<String> ();
-    static Set<String> gwTypeSet   = new HashSet<String> ();
-    static boolean inited = false;
+    String defModule;   // where define this data type
+    String range;
+    String length;
+
+    List <String> patternList;
+    List <ConfigDataEnum> enumValList;
+    ConfigTypedef typeDefinition;
     
-    static void Init() {
-        if (inited)
-            return;
-        yangTypeSet.add("enumeration");
-        yangTypeSet.add("union");
-        yangTypeSet.add("string");
-        yangTypeSet.add("int32");
-        yangTypeSet.add("uint32");
-        
-        gwTypeSet.addAll(yangTypeSet);
-        gwTypeSet.add("ip-address");
-        gwTypeSet.add("ipv6-address");
-        gwTypeSet.add("ipv4-address");
-        //gwTypeSet.add("");
-        //gwTypeSet.add("enumeration");
-        //gwTypeSet.add("enumeration");
-        
-        inited = true;
-    }
-    
-    /*
-    static String gw_builtinTypes[] = { 
-        "enumeration", 
-        "union", 
-        "string", 
-        "int32", 
-        "uint32" };
-    */
-    ConfndTypedef typeDefinition;
-    
-    String typeName;
-    String definedModule;   // where define this data type
-    
-    List <DataTypeChoice> enumValList;
-    List <String>         patternList;
-    String                range;
-    String                length;
-    
-    ConfndType() {
+    ConfigType() {
         
         super();
         
-        if (!inited) {
-            Init();
-            inited = true;
-        }
             
         type = NodeType.data_type;
         
-        typeDefinition     = null;
-        typeName     = "";
-        definedModule   = "";
-        enumValList  = new ArrayList<DataTypeChoice> ();
+        typeDefinition = null;
+        defModule    = "";
+        enumValList  = new ArrayList<ConfigDataEnum> ();
         patternList  = new ArrayList<String> ();
         range        = "";
         length       = "";
     }
     
     
-    public ConfndTypedef getTypeDefinition() {
+    public ConfigTypedef getTypeDefinition() {
         return typeDefinition;
     }
 
-    public void setTypeDefinition(ConfndTypedef dataType) {
+    public void setTypeDefinition(ConfigTypedef dataType) {
         this.typeDefinition = dataType;
     }
 
     boolean isEnum() {
-        return typeName.contentEquals("enumeration");
+        return getName().contentEquals("enumeration");
     }
     
     boolean isString() {
-        return typeName.contentEquals("string");
+        return getName().contentEquals("string");
     }
 
     
@@ -615,12 +645,13 @@ class ConfndType extends ConfigNode {
         StringBuffer _range=new StringBuffer();
         
         if (isEnum()) {
-            for (DataTypeChoice choice: getEnumValList()) {
+            for (ConfigDataEnum choice: enumValList) {
                 if (_range.length() != 0)
                     _range.append("\n");
                 _range.append("("+choice.name + ":" + choice.value + ")");
             }
         }
+        
         else if (isString()) {
             for (String pattern: patternList) {
                 if (_range.length() != 0)
@@ -642,68 +673,62 @@ class ConfndType extends ConfigNode {
     }
 
     
-    String getTypeName() {
-        Init();
-        
-        if (gwTypeSet.contains(typeName)) {
-            return typeName;
+    /* go through the definition, till it is GW bultin type definition */
+    String getGwBuiltinName() {
+        if (ConfigBuiltin.isGwBuiltin(getName())) {
+            return getName();
         }
         
-        if (typeDefinition.children==null) {
-            System.out.println("type definition is null, typeName=" + typeName);
-            return typeName;
+        ConfigTypedef type_def = typeDefinition;
+        if ((type_def != null) && (type_def.dataType != null)) {
+            return type_def.dataType.getGwBuiltinName();
         }
-        
-       
-        ConfndTypedef _type = typeDefinition;
-        
-        while (!gwTypeSet.contains(_type.getName())) {
-            if (typeDefinition.children.isEmpty())
-                return _type.getName();
             
-            for (ConfigNode tmp: typeDefinition.children) {
-                if (tmp.type == ConfigNode.NodeType.type_def) {
-                    _type = (ConfndTypedef)(tmp);
-                    break;
-                }
-            }
-        }
-        
-        return _type.getName();
+        return getName();
     }
 
-    public List<DataTypeChoice> getEnumValList() {
+    /*
+    public List<DataTypeEnum> getEnumValList() {
         return enumValList;
     }
+    */
 
-
-    public void setEnumValList(List<DataTypeChoice> enumValList) {
+    /*
+    public void setEnumValList(List<DataTypeEnum> enumValList) {
         this.enumValList = enumValList;
     }
+    */
 
 
     boolean parseFullName(String fullTypeName) {
         String[] keywords = fullTypeName.split(":");
         
+        /* at least one stream */
         if (keywords.length == 0) {
+            errProc.addMessage("type name error in Node <" + fullTypeName
+                             + "> in Yang file " + yangFile.getYangFileName());
             return false;
         }
         
+        /* should be YANG built in type or type defined in same Yang file */
         else if (keywords.length == 1) {
-            typeName = keywords[0];
+            setName(keywords[0]);
             
-            if (!ConfndBuiltin.isBuiltinType(typeName))
-                definedModule = yangFile.getModuleName();
+            if (ConfigBuiltin.isYangBuiltin(getName())) {
+                defModule = "";
+            }
+            else {
+                defModule = yangFile.getModuleName();
+            }
         }
         
-        if (keywords.length == 2) {
-            typeName = keywords[1];
+        else if (keywords.length == 2) {
+            setName(keywords[1]);
         
             String prefix = keywords[0];
             for (ReferYangFile refer: yangFile.getReferFiles()) {
-                //System.out.println("prefix=<" + prefix + ">, refer-prefix=<" + refer.prefix + ">");
                 if (refer.prefix.contentEquals(prefix)) {
-                    definedModule = refer.getModuleName();
+                    defModule = refer.getModuleName();
                     break;
                 }
             }            
@@ -712,23 +737,9 @@ class ConfndType extends ConfigNode {
         return true;
     }
     
-    /*
-    String getModuleName(String fullTypeName, YangFile yangFile) {
-        String[] keywords = fullTypeName.split(":");
-        String prefix="";
-        if (keywords.length == 1) {
-            return "";
-        }
-        else if (keywords.length == 2) {
-            prefix = keywords[0];
-            
-        }
-        return "";
-    }
-*/
     @Override
     public String toString() {
-        return "\nConfndType [typeName=" + typeName + ", moduleName=" + definedModule
+        return "\nConfndType [typeName=" + getName() + ", moduleName=" + defModule
                 + ", range=" + range + ", length=" + length
                 + ", enumValList=" + enumValList 
                 + ", patternList=" + patternList + "]";
