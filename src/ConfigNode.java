@@ -100,6 +100,7 @@ class ConfigNode {
         maxElements = "";
         minElements = "";
         orderedBy = "";
+        mandatory = "false";
         
         gw_scope        = Scope.INVALID;
         gw_add_rel  	= "";
@@ -127,6 +128,7 @@ class ConfigNode {
     boolean isLeafList()        { return type == NodeType.LEAF_LIST;    }
     boolean isDataType()        { return type == NodeType.DATA_TYPE;    }
     boolean isTypeDef()         { return type == NodeType.TYPE_DEF;     }
+    boolean isBuiltin()			{ return type == NodeType.TYPE_BUILTIN;	}
     
     
     boolean isConfigurable() {
@@ -585,7 +587,7 @@ class ConfigBuiltin extends ConfigTypedef {
     ConfigBuiltin(String _name) {
     	super();
     	
-    	assert (isYangBuiltin(name));
+    	assert (isGwBuiltin(name));
     	
         type = NodeType.TYPE_BUILTIN;
         setName(_name);
