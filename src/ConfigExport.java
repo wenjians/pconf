@@ -202,13 +202,13 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
+            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_SCOPE,curRow, configNode.getScopeName(), normalFormat);
@@ -263,13 +263,13 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
 
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
+            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
             sysParamSheet.addCell(label);
 
             if (leaflist.maxElements.length() != 0) {
@@ -302,7 +302,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
@@ -314,7 +314,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_SCOPE,curRow, configNode.getScopeName(), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
+            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
             sysParamSheet.addCell(label);
 
             label = new Label(COLUMN_DESCP,curRow, list.getDescription(), normalFormat);
@@ -374,13 +374,13 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getFullPathName(), normalFormat);
+            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString(), normalFormat);
+            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
             sysParamSheet.addCell(label);
             
         } catch (WriteException e) {   
@@ -415,7 +415,7 @@ class ConfigExportPDD extends ConfigExport{
             sysParamSheet.setColumnView(COLUMN_MODULE,   10);
             sysParamSheet.setColumnView(COLUMN_NODE_TYPE,10);
             sysParamSheet.setColumnView(COLUMN_NAME,     15);
-            sysParamSheet.setColumnView(COLUMN_HIERARCHY,30);
+            sysParamSheet.setColumnView(COLUMN_HIERARCHY,25);
             sysParamSheet.setColumnView(COLUMN_CONF_ABLE,10);
             sysParamSheet.setColumnView(COLUMN_SCOPE,    10);
             sysParamSheet.setColumnView(COLUMN_DESCP,    50);

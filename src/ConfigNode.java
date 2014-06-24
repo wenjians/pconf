@@ -144,7 +144,7 @@ class ConfigNode {
         if (gw_scope == Scope.INVALID) {
             _scopeName = "";
         } else {
-            _scopeName = gw_scope.toString();
+            _scopeName = gw_scope.toString().toLowerCase();
         }
         
         return _scopeName;
@@ -298,32 +298,34 @@ class ConfigNode {
     }
     
     
-    /* this function return the full path name, not include the module name
-     * e.g. realm-table/ip-if/ip
+    /* this function return the middle name (remove the module name and leaf name
+     * which is easy to show the hierarchy, e.g. 
+     *     realm/realm-table/ip-if/ip => realm-table/ip-if 
      */
-    String getHierarchyName() {
-        //String[] keyword;
+    String getMiddleName() {
+    	
         List<String> keyword = new ArrayList<String> ();
-        String fullPathName="";
         
-        
-        for (ConfigNode parent=getParent();
-             parent.type != ConfigNode.NodeType.MODULE;
-             parent = parent.getParent()
-            ) {
-            keyword.add(parent.getName());
+        ConfigNode curNode=getParent();
+        while (!curNode.isConfigModule()) {
+        	keyword.add(curNode.getName());
+        	curNode = curNode.getParent();
         }
-        
-        // add the module name
-        keyword.add(parent.getName());
-        
+            
+        String middleName="";
         for (int i=keyword.size()-1; i>=0; i--) {
-            fullPathName += keyword.get(i) + "/";
+        	middleName += keyword.get(i) ;
+        	
+        	if (i>0)
+        		middleName += '/';
         }
         
-        return fullPathName + getName();
+        return middleName ;
     }    
     
+    /* this function return the full path or the unique system level path name
+     *     e.g. realm/realm-table/ip-if/ip  
+     */
     String getFullPathName() {
         List<String> keyword = new ArrayList<String> ();
         
@@ -349,11 +351,6 @@ class ConfigNode {
         
         return fullPathName + getName();
     }   
-    /*
-    String getFullPathName() {
-        
-    }
-    */
 
     @Override
     public String toString() {
