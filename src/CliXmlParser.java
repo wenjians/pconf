@@ -1,12 +1,12 @@
-package cli;
+
 
 
 import java.io.*;
 
 import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+//import javax.xml.transform.*;
+//import javax.xml.transform.dom.DOMSource;
+//import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.*;
 import org.xml.sax.*; 
@@ -14,7 +14,14 @@ import org.xml.sax.*;
 
 public class CliXmlParser 
 {
+    ConfigTree configTree;
     
+    
+    public void setConfigTree(ConfigTree configTree) {
+        this.configTree = configTree;
+    }
+
+
     public boolean parseXMLFile(String fileName, CliCommandTree mainTree, CliCommandTree diagTree)
     {
         CliCommandTree curCmdTree;
@@ -165,13 +172,43 @@ public class CliXmlParser
         if (parameterNodes == null) return;
         
         CliNodeParameter cliNodeParameter = new CliNodeParameter();
+        
+        String required = parameterElement.getAttribute("required").trim();
+        if (!cliNodeParameter.setRequired(required)) {
+            cliCommand.addErrorMsg("Error: unsupportted required defined: <" 
+                                 + required + "> in command <" + cliCommand.getSyntaxString() + ">");
+            return ;
+        }
+        
+        
+        /* first check the reference, if there is reference exist, 
+         * then only read from reference and ignore the following definition
+         */
+        String paramName = parameterElement.getAttribute("reference").trim();
+        if (paramName.length() != 0) {
+            ConfigNode configNode = configTree.findConfig(paramName);
+            if (configNode == null) {
+                cliCommand.addErrorMsg("Error: can not find parameter: <" + paramName 
+                                     + "> in command <" + cliCommand.getSyntaxString() + ">");
+            }
+
+            cliNodeParameter.copyFromConfigNode(configNode);
+            cliCommand.addNode(cliNodeParameter);
+            
+            System.out.println("CliXmlParser.parseCliParameters, configNode: " + configNode);
+            System.out.println("CliXmlParser.parseCliParameters, CliNodeParameter: " + cliNodeParameter);
+            
+            return;
+        }
+        
+        
+        
+        //if ()
 
         String keyword = parameterElement.getElementsByTagName("keyword").item(0).getTextContent().trim();
         //System.out.println("parameter keyword= " + keyword);
       
-        String required = parameterElement.getAttribute("required").trim();
-        if (!cliNodeParameter.setRequired(required))
-            cliCommand.addErrorMsg("Error: unsupportted required defined: <" + required + "> in parameter <" + keyword + ">");
+        
         
         String dataType = parameterElement.getAttribute("datatype").trim();
         if (!cliNodeParameter.setDataType(dataType))
@@ -224,16 +261,6 @@ public class CliXmlParser
             else if (token.equals("help"))
                 cliNodeParameter.addHelp(curNode.getTextContent());
             
-            else if (token.equals("config_txt")) {
-                Element configtxt = (Element) curNode;
-                
-                cliNodeParameter.setConfigTxt(configtxt.getAttribute("client"),
-                                              configtxt.getAttribute("keyword"),
-                                              configtxt.getAttribute("column"));
-            }
-            
-            else if (token.equals("note"))
-                cliNodeParameter.setSpecialNote(curNode.getTextContent());
         }
         
         cliCommand.addNode(cliNodeParameter);
@@ -247,8 +274,10 @@ public class CliXmlParser
             CliNodeKeyword cliKeyword = new CliNodeKeyword();
             token.trim();
             
+            /*
             if (!cliKeyword.setSyntaxKeyword(token.trim()))
                 cliCommand.addErrorMsg("Error: keyword is too longer: " + token);
+            */
             
             cliKeyword.setNodeShow(cliCommand.getDisplayMode());
 

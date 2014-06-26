@@ -8,13 +8,13 @@ import java.util.*;
  * @author wenjians
  *
  */
-
-class ConfigDataMust {
+/* it is used for "range" and "must" in Yang */
+class ConfigCondition {
     String description;
     String condition;
     String errMsg;
     
-    ConfigDataMust() {
+    ConfigCondition() {
         description = "";
         condition = "";
         errMsg = "";
@@ -75,7 +75,7 @@ class ConfigNode {
     String orderedBy;
     
     ConfigType dataType;
-    List <ConfigDataMust> limit_must;
+    List <ConfigCondition> limit_must;
     
     /* the following is gw specific defined attribution */
     Scope  gw_scope;
@@ -331,7 +331,7 @@ class ConfigNode {
     String getFullPathName() {
         List<String> keyword = new ArrayList<String> ();
         
-        String fullPathName="";
+        String fullPathName="/";
         ConfigNode curNode=this;
         
         
@@ -439,7 +439,7 @@ class ConfigContainer extends ConfigNode {
         
         type = NodeType.CONTAINER;
         children = new ArrayList<ConfigNode> ();
-        limit_must = new ArrayList <ConfigDataMust> ();
+        limit_must = new ArrayList <ConfigCondition> ();
     }
 
     @Override
@@ -459,7 +459,7 @@ class ConfigLeaf extends ConfigNode {
         
         type = NodeType.LEAF;
         children = null;
-        limit_must = new ArrayList <ConfigDataMust> () ;
+        limit_must = new ArrayList <ConfigCondition> () ;
     }
 
     @Override
@@ -483,7 +483,7 @@ class ConfigLeafList extends ConfigNode {
         type        = NodeType.LEAF_LIST;
         children    = null;
         
-        limit_must = new ArrayList <ConfigDataMust> ();
+        limit_must = new ArrayList <ConfigCondition> ();
     }
 
     
@@ -505,7 +505,7 @@ class ConfigList extends ConfigNode {
         listKey = "";
         type = NodeType.LIST;
         children = new ArrayList<ConfigNode> ();
-        limit_must = new ArrayList <ConfigDataMust> () ;
+        limit_must = new ArrayList <ConfigCondition> () ;
     }
     
     @Override

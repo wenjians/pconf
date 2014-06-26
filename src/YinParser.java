@@ -340,6 +340,7 @@ public final class YinParser {
         result = parseStatements(leaf, yangFile, xmlElement);
         
         configNode.addChild(leaf);
+        configTree.addConfig(leaf.getFullPathName(), leaf);
         
         return result;
     }
@@ -358,6 +359,7 @@ public final class YinParser {
         result = parseStatements(leaflist, yangFile, xmlElement);
         
         configNode.addChild(leaflist);
+        configTree.addConfig(leaflist.getFullPathName(), leaflist);
         
         return result;
     }
@@ -510,7 +512,7 @@ public final class YinParser {
             else if (keyword.contentEquals("must")) {
                 //System.out.println("\n\n\nattribute 'must' not finished yet\n\n\n\n");
                 
-                parseMust(configNode, (Element)xmlStmntNode, yangFile);
+                parseCondition(configNode, (Element)xmlStmntNode, yangFile);
             }
             
             else if (keyword.contentEquals("when")) {
@@ -649,7 +651,7 @@ public final class YinParser {
           </error-message>
         </must>
     */
-    private boolean parseMust(ConfigNode configNode, Element xmlStmnt, YangFile yangFile) {
+    private boolean parseCondition(ConfigNode configNode, Element xmlStmnt, YangFile yangFile) {
 
         //System.out.println("parseMust =" + xmlStmnt.getNodeName());
         
@@ -660,7 +662,7 @@ public final class YinParser {
         }
 
         
-        ConfigDataMust dataMust = new ConfigDataMust();
+        ConfigCondition dataMust = new ConfigCondition();
 
         dataMust.condition = xmlStmnt.getAttribute("condition").trim();
         dataMust.errMsg = getSubelementValue(xmlStmnt, SUB_ELE_CTXT, "error-message", "value");

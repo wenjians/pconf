@@ -16,3 +16,4 @@ parameters/yin/ietf-inet-types.xml
 *.yang
 *.xls
 *.xml
+*.c

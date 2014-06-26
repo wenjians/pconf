@@ -130,9 +130,9 @@ public class YangParser {
 
     /**
      * @param yangFiles
-     * @param yangFileTree TODO
-     * @param yangPath TODO
-     * @param yinPath TODO
+     * @param yangFileTree
+     * @param yangPath
+     * @param yinPath
      */
     public boolean parseYangFiles(String yangPath, String yinPath) {
     
@@ -146,7 +146,7 @@ public class YangParser {
         
         //System.out.println("yang file path: " + yangPath + "...");
         //System.out.println("yin  file path: " + yinPath  + "...");
-        System.out.println("process XML file: " + yangXMLFile + "...");
+        System.out.println("\nprocess Yang XML file list: " + yangXMLFile + "...");
         
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

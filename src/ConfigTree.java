@@ -9,6 +9,7 @@ public class ConfigTree {
     List<ConfigModule> moduleList;
     
     HashMap<String , ConfigTypedef> typeDefs;
+    Hashtable<String, ConfigNode> configTable;
     
     
     ConfigTree() {
@@ -16,11 +17,30 @@ public class ConfigTree {
         
         typeDefs = new HashMap<String , ConfigTypedef> ();
         
+        configTable = new Hashtable<String, ConfigNode>();
         //addBuitinTypes();
     }
     
     void addConfigModule(ConfigModule _mod) {
         moduleList.add(_mod);
+    }
+    
+    boolean addConfig(String configPathName, ConfigNode configNode) {
+        if (!configNode.isLeaf() && !configNode.isLeafList())
+            return false;
+        
+        if (findConfig(configPathName) != null) {
+            return false;
+        }
+        
+        configTable.put(configPathName, configNode);
+        //System.out.println("ConfigTree.addConfig, add configuration: " + configPathName);
+        return true;
+    }
+    
+    
+    ConfigNode findConfig(String configPathName) {
+        return configTable.get(configPathName);
     }
     
     void addTypedef(String moduleName, String typeName, ConfigTypedef typedef) {
@@ -35,20 +55,6 @@ public class ConfigTree {
     
     
     ConfigTypedef getTypeDef(ConfigType dataType) {
-        /*
-        String moduleName = "";
-        
-        if (dataType.definedModule == null || 
-            dataType.definedModule.length() == 0) {
-            if (!ConfndBuiltin.isBuiltinType(dataType.typeName))
-                moduleName = dataType.getYangFile().getYangFileName();
-            else
-                moduleName = "";
-        } else {
-            moduleName = dataType.definedModule;
-        }
-        */
-        
         //System.out.println("getTypeDef, fullname=<" + dataType.definedModule + ":" + dataType.typeName + ">");
         if (dataType.defModule==null || dataType.defModule.length()==0)
             return typeDefs.get(dataType.getName());
@@ -59,6 +65,8 @@ public class ConfigTree {
     String toStringTypedef() {
         return typeDefs.toString();
     }
+    
+    
     
     String toStringAllConfigModule() {
         StringBuffer sb = new StringBuffer();

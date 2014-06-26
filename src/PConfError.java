@@ -13,16 +13,21 @@ public final class PConfError {
     
     public void addMessage(String msg) {
         errMsg.append(msg);
+        errMsg.append("\n");
     }
     
+    /*
     public void exit(int errCode) {
         System.err.print(errMsg);
         System.exit (-1);
     }
+    */
     
     public void checkError() {
         if (hasErrorMsg()) {
-            exit(-1);
+            System.err.print(errMsg);
+            System.exit (-1);
+            //exit(-1);
         }
     }
     

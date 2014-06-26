@@ -1,7 +1,9 @@
+import java.util.List;
+import java.util.ArrayList;
 
 
 //import java.io.*;
-import cli.*;;
+//import cli.*;;
 
 /**
  * 
@@ -9,26 +11,45 @@ import cli.*;;
 
 
 class PConfCommand {
+    static final int MAX_COMMAND_PARAM = 2;
+    
     String  command;
     int     paramCnt;
-    String  paramStr;
+    List<String>  paramList;
     boolean paramSet;
     
     //PConfMain.CommandIdx cmdIdx;
     
-    PConfCommand(/*PConfMain.CommandIdx idx, */String cmd, int paramCount, String paramString) {
+    PConfCommand(/*PConfMain.CommandIdx idx, */String cmd, int paramCount) {
         //cmdIdx   = idx;
         command  = cmd;
         paramCnt = paramCount;
-        paramStr = paramString;
+        paramList = new ArrayList<String> ();
         paramSet = false;
     }
     
-    boolean isParamSet()    { return paramSet;  }
+    boolean isParamSet() { 
+        return paramSet;  
+    }
 
-    void setParameter(String param) {
-        paramStr = param;
+    
+    void setParameter() {
         paramSet = true;
+    }
+
+    @Override
+    public String toString() {
+        String result = "";
+        
+        if (isParamSet()) {
+            result += " " + command;
+            
+            for (int i=0; i<paramList.size(); i++) {
+                result += " " + paramList.get(i);
+            }
+        }
+        
+        return result;
     }
 } ;
 
@@ -46,30 +67,34 @@ public class PConfMain {
     public static final int COMMAND_YIN_DIR  = 1;
     public static final int COMMAND_PYANG    = 2;
     public static final int COMMAND_PDD      = 3;
+    public static final int COMMAND_CLIXML   = 4;
+    public static final int COMMAND_CLITREE  = 5;
     
     private static PConfCommand[] commandList = {
         //type,  range need, default rule, minimal rule, maximum rule
-        new PConfCommand("-yang",   1,    ""),
-        new PConfCommand("-yin",    1,    ""),
-        new PConfCommand("-pyang",  0,    ""),
-        new PConfCommand("-pdd",    1,    ""),
+        new PConfCommand("-yang",   1),
+        new PConfCommand("-yin",    1),
+        new PConfCommand("-pyang",  0),
+        new PConfCommand("-pdd",    1),
+        new PConfCommand("-clixml", 2),
+        new PConfCommand("-clitree",2),
+        
     };
     
-    static PConfError errProc;
-    static ConfigTree configTree;
-    static YangParser yangPaser;
-    static YangFileTree yangTree;
-    static YinParser  yinParser;
+    static PConfError errProc = PConfError.getInstance();;
+    static YinParser  yinParser  = new YinParser();
+    static YangParser yangParser  = new YangParser();
+    static YangFileTree yangTree = new YangFileTree();
+    static ConfigTree configTree = new ConfigTree();
     
-    /*
+    static CliDefParser defParser = new CliDefParser();
+    static CliXmlParser xmlParser = new CliXmlParser(); 
+    
     static CliCommandTree cliMainCmdTree = new CliCommandTree();
     static CliCommandTree cliDiagCmdTree = new CliCommandTree();
     static CliCommandTree cliTdmCmdTree = new CliCommandTree();
     
-    CliDefParser defParser = new CliDefParser();
-    */
-    
-    
+
     static PConfCommand getCommand(String cmd) {
         for (int i=0; i<commandList.length; i++) {
             if (cmd.contentEquals(commandList[i].command))
@@ -88,8 +113,6 @@ public class PConfMain {
     */
     public static void main(String[] args) 
     {
-        errProc = PConfError.getInstance();
-        
         if (args.length < 1) {
             printHelpMsg();
             return;
@@ -106,71 +129,68 @@ public class PConfMain {
                 break;
             }
             
-            if (argc+command.paramCnt>args.length) {
+            if (argc+command.paramCnt > args.length) {
                 errProc.addMessage("Parameter count error\n");
                 break;
             }
             
-            if (command.paramCnt == 1) {
+            for (int i=0; i<command.paramCnt; i++) {
                 argc ++;
-                command.setParameter(args[argc]);
-            } else {
-                command.setParameter("");
+                command.paramList.add(args[argc]);
+                command.setParameter();
             }
-            
             argc++;
         }
-        
+
+        if ((commandList[COMMAND_YANG_DIR].paramList.size() == 0) || 
+                (commandList[COMMAND_YIN_DIR].paramList.size() == 0))
+        {
+            errProc.addMessage("Both Yang input and output file must specified!\n");
+        }
+
         errProc.checkError(); 
-        
+
+        // Print the parameters
         for (int idx=0; idx<commandList.length; idx++) {
             if (!commandList[idx].isParamSet())
                 continue;
             
-            System.out.format("%d: %7s %5d %s\n", idx,  commandList[idx].command, 
-                              commandList[idx].paramCnt,commandList[idx].paramStr);
+            System.out.println("param idx:" + idx + commandList[idx]);
         }
-        
-        if ((commandList[COMMAND_YANG_DIR].paramStr.length() == 0) || 
-            (commandList[COMMAND_YIN_DIR].paramStr.length() == 0))
-        {
-            errProc.addMessage("Both Yang input and output file must specified!\n");
-            errProc.checkError();
-        }
-
-        yangPaser  = new YangParser();
-        yangTree   = new YangFileTree();
-        yinParser  = new YinParser();
         
         parseYang2Yin();
         
         parseYinFiles();
         
-        processCRuntime("scm", )
-        
-
-        String pddFile = commandList[COMMAND_PDD].paramStr;
-        if (pddFile.length() != 0) {
-            System.out.print("now export PDD document ...");
-            
-            ConfigExportPDD exportPdd = new ConfigExportPDD();
-            
-            exportPdd.export(pddFile, configTree);
-            
-            System.out.println(" done!");
+        //if (commandl)
+        if (commandList[COMMAND_CLIXML].isParamSet()) {
+            parseCliXml(commandList[COMMAND_CLIXML].paramList.get(0), 
+                        commandList[COMMAND_CLIXML].paramList.get(1));
+            errProc.checkError();
         }
+        
+        if (commandList[COMMAND_CLITREE].isParamSet()) {
+            exportCliTree(commandList[COMMAND_CLITREE].paramList.get(0), 
+                          commandList[COMMAND_CLITREE].paramList.get(1));
+            errProc.checkError();
+        }
+        
+        exportConfig();
+        
+        // TODO dumy for compiler, need change later
+        parseCli("", "");
     }
 
+
     static void parseYang2Yin() {
-        String yangPath = commandList[COMMAND_YANG_DIR].paramStr;
-        String yinPath  = commandList[COMMAND_YIN_DIR].paramStr;
         
         boolean result = true;
-
-                
-        if (commandList[COMMAND_PYANG].isParamSet())
-            yangPaser.enabletYang2Yin();
-        yangPaser.setYangFileTree(yangTree);
+        
+        if (commandList[COMMAND_PYANG].isParamSet()) {
+            yangParser.enabletYang2Yin();
+        }
+        
+        yangParser.setYangFileTree(yangTree);
         
         /* add two default extension to yang File Tree */
         YangFileModule extCOM = new YangFileModule();
@@ -182,8 +202,10 @@ public class PConfMain {
         fileMGW.setModuleGroup(YangFileModule.ModuleGroup.extension);
         fileMGW.setYangFileName("MGWYangExtensions.yang");
         yangTree.addYangModule(fileMGW);
-        
-        result = yangPaser.parseYangFiles(yangPath, yinPath);
+
+        String yangPath = commandList[COMMAND_YANG_DIR].paramList.get(0);
+        String yinPath  = commandList[COMMAND_YIN_DIR].paramList.get(0);
+        result = yangParser.parseYangFiles(yangPath, yinPath);
 
         if ((!result) || (!yangTree.validation()))  {
             errProc.addMessage("process the yang failure!");
@@ -194,12 +216,11 @@ public class PConfMain {
     
     
     static void parseYinFiles() {
-        System.out.println("\n\n\nNow Yin paser to Configuration Tree ... \n\n\n");
+        System.out.println("\nNow parser Yin to Configuration Tree ... ");
 
-        String yinPath  = commandList[COMMAND_YIN_DIR].paramStr;
+        String yinPath  = commandList[COMMAND_YIN_DIR].paramList.get(0);
+        System.out.println("parseYinFiles yin path:" + yinPath);
 
-        configTree = new ConfigTree();
-        
         /* add the built-in type to Configure Tree */
         ConfigBuiltin.Init();
         for (String type: ConfigBuiltin.getYangBuiltinTypes()) {
@@ -213,9 +234,63 @@ public class PConfMain {
         
         errProc.checkError();        
     }
+
+    private static void exportConfig() {
+        String pddFile = commandList[COMMAND_PDD].paramList.get(0);
+        if (pddFile.length() != 0) {
+            System.out.print("now export PDD document ...");
+            
+            ConfigExportPDD exportPdd = new ConfigExportPDD();
+            
+            exportPdd.export(pddFile, configTree);
+            
+            System.out.println(" done!");
+        }
+    }
+    
+    private static boolean parseCliXml(String boardType, String xmlFileName) {
+        System.out.println("parseCliXml: process UI for board:" + boardType + ", ui XML file:" + xmlFileName);
+
+        boolean isScmCmd = false;
+        if (boardType.contains("scm"))
+            isScmCmd = true;
+    
+        xmlParser.setConfigTree(configTree);
+        xmlParser.setSCMCommand(isScmCmd);
+        if (!xmlParser.parseXMLFile(xmlFileName, cliMainCmdTree, cliDiagCmdTree))
+            return false;
+        
+        return true;
+    }
+
+    
+    private static boolean exportCliTree(String boardType, String uiDefPath) {
+        
+        System.out.println("exportCliTree board:" + boardType + ", ui definition path:" + uiDefPath);
+        
+        /*
+        boolean isScmCmd = false;        
+        if (boardType.contains("scm"))
+            isScmCmd = true;
+        */
+    
+        // produce the main and diag command tree in C file
+        String outputFileName;
+        outputFileName = uiDefPath + "/" + "uitrtdm_" +boardType+".c";
+        cliTdmCmdTree.exportToCRuntime(outputFileName, "");
+        
+        outputFileName = uiDefPath + "/" + "uitrtop_" +boardType+".c";
+        cliMainCmdTree.exportToCRuntime(outputFileName, "top");
+        
+        outputFileName = uiDefPath + "/" + "uitrdiag_" +boardType+".c";
+        cliDiagCmdTree.exportToCRuntime(outputFileName, "diag");
+        
+        return true;
+    }
     
     
-    private static boolean processCRuntime(String boardType, String uiDefPath) {
+    private static boolean parseCli(String boardType, String uiDefPath) {
+        /*
         boolean isScmCmd = false;
         String  inputFileName;
         String  outputFileName;
@@ -224,11 +299,13 @@ public class PConfMain {
         
         if (boardType.contains("scm"))
             isScmCmd = true;
-    
-        CliCommandTree cliMainCmdTree = new CliCommandTree();
-        CliCommandTree cliDiagCmdTree = new CliCommandTree();
-        CliCommandTree cliTdmCmdTree = new CliCommandTree();
+        */
+        
+        //CliCommandTreeBoard cmdTreeBoard = new CliCommandTreeBoard();
+        
 
+
+        /*
         CliDefParser defParser = new CliDefParser();
         defParser.setSCMCommand(isScmCmd);
         
@@ -250,14 +327,17 @@ public class PConfMain {
         defParser.setCliCmdMode(CliCommand.CliMode.diag);
         if (!defParser.parseDefFile(cliDiagCmdTree, inputFileName))
             return false;
+        */
         
+        
+        /*
         // process the xml to command tree  ui_scm.xml, here scm is board type, can be cim, mcm, ...
-        CliXmlParser xmlParser = new CliXmlParser();
         xmlParser.setSCMCommand(isScmCmd);
-        
         inputFileName = "ui_top_"+boardType+".xml";
         if (!xmlParser.parseXMLFile(inputFileName, cliMainCmdTree, cliDiagCmdTree))
             return false;
+        */
+        
         
         /*
         CliCheckKeywordLen cliKeyword = new CliCheckKeywordLen();
@@ -265,6 +345,7 @@ public class PConfMain {
             return false;
         */
         
+        /*
         // produce the main and diag command tree in C file
         outputFileName = "uitrtdm_" +boardType+".c";
         cliTdmCmdTree.exportToCRuntime(outputFileName, "");
@@ -274,6 +355,8 @@ public class PConfMain {
         
         outputFileName = "uitrdiag_" +boardType+".c";
         cliDiagCmdTree.exportToCRuntime(outputFileName, "diag");
+        */
+        
         
         //CliExport cliExport = new CliExport();
         /*
