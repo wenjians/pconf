@@ -46,7 +46,7 @@ public class CliXmlParser
                 Element cliElement = (Element) cliCommandList.item(i);
                 if (cliElement.getNodeType() != Node.ELEMENT_NODE)
                     continue;
-                
+
                 CliCommand cliCommand = parserOneCliCommand(cliElement);
                 //System.out.println("command parse finished");
                 if (cliCommand == null) {

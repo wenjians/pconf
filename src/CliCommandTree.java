@@ -131,7 +131,7 @@ public class CliCommandTree {
             insertNode.setParent(parNodes);
 
             // create the children and set, if function node, set to command tree 
-            if (insertNode.getNodeType() == CliNode.CLI_NODE_TYPE_FUNCTION) {
+            if (insertNode.isFunctionNode()) {
                 insertNode.setChilds(cliCmdTree);
             } else if (insertNode.getChilds()==null) {
                 CliNodeList newList = newCliNodeList();
@@ -166,7 +166,7 @@ public class CliCommandTree {
                 return null;
             }
             
-            if (curNode.getNodeType() == CliNode.CLI_NODE_TYPE_FUNCTION) {
+            if (curNode.isFunctionNode()) {
                 command = ((CliNodeFunction)curNode).getCliCommand();
                 break;
             }
@@ -185,13 +185,11 @@ public class CliCommandTree {
             CliNode curNode = nodeList.getCliEntities().get(idx);
 
             // for function, do NOT compare the function name
-            if ((curNode.getNodeType() == CliNode.CLI_NODE_TYPE_FUNCTION) &&
-                (aNode.getNodeType()   == CliNode.CLI_NODE_TYPE_FUNCTION))
+            if (curNode.isFunctionNode() && aNode.isFunctionNode())
                 return curNode;
             
             /* for parameter, if there is only one parameter, then do not change keyword name */
-            if ((curNode.getNodeType() == CliNode.CLI_NODE_TYPE_PARAMETER) &&
-                (aNode.getNodeType()   == CliNode.CLI_NODE_TYPE_PARAMETER))
+            if (curNode.isParameterNode() && aNode.isParameterNode())
             {
             	if (nodeList.getCliEntities().size() == 1)
             		return curNode;
@@ -307,7 +305,7 @@ public class CliCommandTree {
                 {
                     for (CliNode curEntry : curNodeList.getCliEntities()) 
                     {
-                        if (curEntry.getNodeType()==CliNode.CLI_NODE_TYPE_FUNCTION) {
+                        if (curEntry.isFunctionNode()) {
                             out.println("extern int " + curEntry.getSyntaxKeyword() + "();");
                             out.println("extern char *help" + curEntry.getSyntaxKeyword() + ";");
                         }
@@ -325,7 +323,7 @@ public class CliCommandTree {
                 {
                     for (CliNode curEntry : curNodeList.getCliEntities()) 
                     {
-                        if (curEntry.getNodeType()==CliNode.CLI_NODE_TYPE_FUNCTION)
+                        if (curEntry.isFunctionNode())
                         {
                             CliCommand cliCommand = ((CliNodeFunction)curEntry).getCliCommand();
                             if (!cliCommand.isXMLCommand())
@@ -374,7 +372,7 @@ public class CliCommandTree {
         {
             for (CliNode curEntry : curNodeList.getCliEntities()) 
             {
-                if (curEntry.getNodeType()==CliNode.CLI_NODE_TYPE_FUNCTION) {
+                if (curEntry.isFunctionNode()) {
                     CliNodeFunction nodeFunction = (CliNodeFunction)curEntry;
                     CliCommand cliCommand = nodeFunction.getCliCommand();
                     

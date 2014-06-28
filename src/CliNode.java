@@ -1,6 +1,4 @@
 
-
-//import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
@@ -9,9 +7,7 @@ import java.util.List;
 
 
 public class CliNode {
-    public static final int CLI_NODE_TYPE_KEYWORD   = 1;
-    public static final int CLI_NODE_TYPE_PARAMETER = 2;
-    public static final int CLI_NODE_TYPE_FUNCTION  = 3;
+    enum NodeType {INVALID, KEYWORD, PARAMETER, FUNCTION}
     
     public static final int CLI_MAX_KEYWORD_LENGTH = 13;
     
@@ -19,8 +15,7 @@ public class CliNode {
     private CliNodeList childs;
     
     private boolean isNodeShow;
-    private int     nodeType;   /* keyword, parameter, function */
-    //private int     cliCmdMode;   /* main or diag command */
+    private NodeType nodeType;
     
     /* keyword is pure keyword:
      *   for CliNodeKeword, CliNodeParameter, it is the name
@@ -32,12 +27,9 @@ public class CliNode {
     private String  keyword;        //
     private String  syntaxKeyword;
     
-    CliNode() {
-        
-    }
     
-    CliNode(int aNodeType)  {
-        assert isValidNodeType(aNodeType);
+    CliNode(NodeType aNodeType)  {
+        assert aNodeType!=NodeType.INVALID;
         
         nodeType   = aNodeType;
         isNodeShow = true;
@@ -47,61 +39,56 @@ public class CliNode {
         parent = null;
         childs = null;  
     }
-    
-    static boolean isValidNodeType(int aNodeType) {
-        return ((aNodeType == CLI_NODE_TYPE_KEYWORD) ||
-                (aNodeType == CLI_NODE_TYPE_PARAMETER) ||
-                (aNodeType == CLI_NODE_TYPE_FUNCTION));
+
+    NodeType getNodeType() {   
+        return nodeType;
     }
     
     boolean isFunctionNode() {
-        return (getNodeType() == CLI_NODE_TYPE_FUNCTION);
+        return (getNodeType() == NodeType.FUNCTION);
     }
     
     boolean isParameterNode() {
-        return (getNodeType() == CLI_NODE_TYPE_PARAMETER);
+        return (getNodeType() == NodeType.PARAMETER);
     }
     
     boolean isKeywordNode() {
-    	return (getNodeType() == CLI_NODE_TYPE_KEYWORD);
+    	return (getNodeType() == NodeType.KEYWORD);
     }
 
-    /*
-    static CliNode createNode(int aNodeType){
-        assert isValidNodeType(aNodeType);
-        
-        CliNode node;
-        
-        if (aNodeType == CLI_NODE_TYPE_KEYWORD)
-            node = new CliNodeKeyword();
-        if (aNodeType == CLI_NODE_TYPE_PARAMETER)
-            node = new CliNodeParameter();
-        if (aNodeType == CLI_NODE_TYPE_FUNCTION)
-            node = new CliNodeFunction();
-        else
-            node = null;
-        
-        return node;
-    }
-    */
-    
     public boolean equals(CliNode aNode) {
         return ((aNode.getNodeType() == nodeType) && aNode.getKeyword().equals(getKeyword()));
     }
     
-    CliNodeList getParent() {   return parent;  }
     
-    CliNodeList getChilds() {   return childs;  }
+    CliNodeList getParent() {   
+        return parent; 
+    }
     
-    int     getNodeType()   {   return nodeType;}
+    void setParent(CliNodeList newParent)  {   
+        parent = newParent;    
+    }
     
-    //int     getCliCmdMode()   {   return cliCmdMode;  }
+    CliNodeList getChilds() {   
+        return childs;  
+    }
     
-    boolean isNodeShow()    {   return isNodeShow;  }
+    void setChilds(CliNodeList newChilds)  {   
+        childs = newChilds;     
+    }
+   
     
-    void setNodeShow(boolean newShow)       {   isNodeShow = newShow;       }
+    boolean isNodeShow()  {   
+        return isNodeShow;  
+    }
     
-    String  getSyntaxKeyword()              {   return syntaxKeyword;       }
+    void setNodeShow(boolean newShow) {   
+        isNodeShow = newShow;       
+    }
+    
+    String  getSyntaxKeyword()  {   
+        return syntaxKeyword;       
+    }
 
     boolean setSyntaxKeyword(String aKeyword)   {   
         syntaxKeyword = aKeyword;       
@@ -121,8 +108,10 @@ public class CliNode {
         return true;
     }
     
-    String getKeyword()                     {   return keyword;         }
-    //void   setKeyword(String aKeyword)        {   keyword = aKeyword;     }
+    String getKeyword()  {   
+        return keyword;         
+    }
+
     
     boolean isKeywordValid() {
     	if (isKeywordNode()) {
@@ -132,13 +121,10 @@ public class CliNode {
     	return true;
     }
     
-    void setParent(CliNodeList newParent)   {   parent = newParent;     }
     
-    void setChilds(CliNodeList newChilds)   {   childs = newChilds;     }
-    
-    
-    
-    public String toString()                {   return keyword;         }
+    public String toString()   {   
+        return keyword;         
+    }
     
     /* 
      * tye total node print format is:
@@ -173,31 +159,20 @@ class CliNodeFunction extends CliNode {
 
     private CliCommand  cliCommand;
     
-    /*
-    CliNodeFunction(CliCommand aCliCommand) {
-        super(CliNode.CLI_NODE_TYPE_FUNCTION, aCliCommand.getDisplayMode());
-        super.setKeyword(aCliCommand.getFunctionName());
-        
-        cliCommand = aCliCommand;
-    }
-    */
-    
     CliNodeFunction()
     {
-        super(CliNode.CLI_NODE_TYPE_FUNCTION);
+        super(CliNode.NodeType.FUNCTION);
         
         cliCommand = null;
     }
     
-    void setCliCommand(CliCommand aCliCommand)  { cliCommand = aCliCommand; }
+    void setCliCommand(CliCommand aCliCommand) { 
+        cliCommand = aCliCommand; 
+    }
     
-    CliCommand getCliCommand()      { return cliCommand;    }
-    
-    //void setFunctionName(String funName) { setKeyword(funName); }
-    
-    //String getFunctionName()  { return getKeyword();  }
-    
-    //int getPrivilege()        {  return privilege;    }
+    CliCommand getCliCommand() { 
+        return cliCommand;    
+    }
     
     
     /* following function translate to string mode in runtime:
@@ -233,20 +208,13 @@ class CliNodeFunction extends CliNode {
         
         return result;
     }
-    
-    
-    //private String cbFunctionName;
-    
-    
 }
 
 
 class CliNodeKeyword extends CliNode {
     
-    //private String keyword;
-
     CliNodeKeyword() {
-        super(CliNode.CLI_NODE_TYPE_KEYWORD);
+        super(CliNode.NodeType.KEYWORD);
     }
     
     
@@ -265,9 +233,6 @@ class CliNodeKeyword extends CliNode {
         return result;
     }
 }
-
-
-
 
 
 class CliDataTypeRule {
@@ -342,11 +307,9 @@ class CliNodeParameter extends CliNode {
     
     private List<String> helps;
     
-    //ConfigNode referParam;
-    
     CliNodeParameter()
     {
-        super(CliNode.CLI_NODE_TYPE_PARAMETER);
+        super(CliNode.NodeType.PARAMETER);
         
         required  = true;
         value_def = "";
@@ -360,16 +323,12 @@ class CliNodeParameter extends CliNode {
         dataType="";
         dataTypeRule = dataTypeRules[0];
         helps    = new ArrayList<String> ();
-        
-        //referParam = null;
-        
     }
+
     public void setUnit(String unit) {  value_unit = unit;  }
     public String getUnit()          {  return value_unit;  }
 
-    public boolean getRequired()    { return required;      }
-    
-
+    public boolean getRequired()     { return required;      }
     public boolean setRequired(String req) {
         req = req.trim();
         if (req.equals("mandatory")) {
@@ -426,6 +385,7 @@ class CliNodeParameter extends CliNode {
     }
     
     
+    public String getMaxValue()     { return value_max; }
     
     public boolean setMaxValue(String max) {
         max = max.trim();
@@ -438,7 +398,7 @@ class CliNodeParameter extends CliNode {
         return false;
     }
     
-    public String getMaxValue()     { return value_max; }
+    public String getMinValue()     { return value_min;     }
     
     public boolean setMinValue(String min) {
         min = min.trim();
@@ -452,7 +412,8 @@ class CliNodeParameter extends CliNode {
         
     }
     
-    public String getMinValue()     { return value_min;     }
+    
+    public String getDefValue()     { return value_def;     }
     
     public boolean setDefValue(String def) {
         def = removeStringBracket(def.trim()).trim();
@@ -465,9 +426,6 @@ class CliNodeParameter extends CliNode {
         return false;
     }
     
-    public String getDefValue()     { return value_def;     }
-    
-
     
     /* format of range:
      * Addr: valid memory address range, must provided, default can be "0-0xffffffff"
@@ -505,32 +463,13 @@ class CliNodeParameter extends CliNode {
 
     public boolean isRangeSet()     { return rangeSet;      }
     
+    public List<String> getHelps() { 
+        return helps; 
+    }
+    
     public void addHelp(String aHelp)   {
         helps.add(aHelp);
     }
-
-    public List<String> getHelps()      { return helps; }
-    
-    /*
-    String  getSyntaxKeyword() {
-        if (referParam == null)
-            return super.getSyntaxKeyword();
-        
-        String syntaxKeyword="{";
-        if (referParam.dataType.isEnum()) {
-            for (ConfigDataEnum oneEnum: referParam.dataType.enumValList) {
-                syntaxKeyword += oneEnum.name + "|";
-            }
-            
-            syntaxKeyword = syntaxKeyword.substring(0, syntaxKeyword.length()-1) + "}";
-        }
-        else {
-            syntaxKeyword = referParam.getName();
-        }
-            
-        return syntaxKeyword;
-    }
-    */
 
     public String getErrorMsg(int cliCmdType)
     {
@@ -547,21 +486,19 @@ class CliNodeParameter extends CliNode {
             errMsg += "Error: minimal or maximum value not defined for parameter " + getSyntaxKeyword() + "\n";
         }
 
-        /*
-        if (cliCmdType == CliCommand.CLI_COMMAND_TYPE_SYS_PARAM) {
-            if (configClient.isEmpty() || configKeyword.isEmpty() || configColumn.isEmpty()) 
-            {
-                errMsg += "Error: config_txt is not defined for system parameter " + getSyntaxKeyword() + "\n";
-            }
-        }
-        */
-        
         return errMsg;
     }
     
     void copyFromConfigNode(ConfigNode configNode) {
         value_def = configNode.defaultVal;
-        //String range = 
+        
+        
+        String[] range_value = keyword.split(":");
+        for (String token: keywords) {
+            CliNodeKeyword cliKeyword = new CliNodeKeyword();
+            token.trim();
+            
+        String range[]  = 
         //value_min = 
     }
     

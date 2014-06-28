@@ -635,7 +635,6 @@ class ConfigType extends ConfigNode {
     ConfigType() {
         
         super();
-        
             
         type = NodeType.DATA_TYPE;
         
@@ -661,10 +660,13 @@ class ConfigType extends ConfigNode {
     }
     
     boolean isString() {
-        return getName().contentEquals("string");
+        return getName().contentEquals("string") || getName().contentEquals("string-word");
+    }
+    
+    boolean isNumber() {
+        return getName().contentEquals("uint32") ||getName().contentEquals("int32");
     }
 
-    
     String getRange() {
         StringBuffer _range=new StringBuffer();
         
@@ -717,6 +719,8 @@ class ConfigType extends ConfigNode {
             
         return getName();
     }
+    
+    
 
     /*
     public List<DataTypeEnum> getEnumValList() {

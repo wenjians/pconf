@@ -204,7 +204,7 @@ public class CliCommand
     public void addNode(CliNode cliNode)    {
         cliCmdNodes.add(cliNode);
         
-        if (cliNode.getNodeType() == CliNode.CLI_NODE_TYPE_KEYWORD) {
+        if (cliNode.isKeywordNode()) {
             if (!fullKeywords.isEmpty())
                 fullKeywords += ":";
             fullKeywords += cliNode.getSyntaxKeyword();
@@ -216,7 +216,7 @@ public class CliCommand
         int keyWordCount = 0;
         
         for (CliNode node: cliCmdNodes) {
-            if (node.getNodeType() != CliNode.CLI_NODE_TYPE_KEYWORD)
+            if (!node.isKeywordNode())
                 break;
                 
             
@@ -254,7 +254,7 @@ public class CliCommand
             if (node.getSyntaxKeyword().trim().isEmpty())
                 addErrorMsg("Command or Parameter keyword is not defined!");
             
-            if (node.getNodeType() == CliNode.CLI_NODE_TYPE_PARAMETER) {
+            if (node.isParameterNode()) {
                 CliNodeParameter param = (CliNodeParameter)node;
                 
                 if (!param.getRequired())
@@ -303,7 +303,7 @@ public class CliCommand
         boolean firstNode = true;
         
         for (CliNode node: cliCmdNodes) {
-            if (node.getNodeType() == CliNode.CLI_NODE_TYPE_FUNCTION)
+            if (node.isFunctionNode())
                 continue;
             
             if (firstNode) {
@@ -403,7 +403,7 @@ public class CliCommand
         boolean paramNeed = true;
         String  paramMsg = null;
         for (CliNode node: cliCmdNodes) {
-            if (node.getNodeType() == CliNode.CLI_NODE_TYPE_PARAMETER) {
+            if (node.isParameterNode()) {
                 
                 CliNodeParameter param = (CliNodeParameter)node;
                 
