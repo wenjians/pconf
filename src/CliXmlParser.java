@@ -59,16 +59,8 @@ public class CliXmlParser
                     continue;
                 }
                 
-                /*
-                if (!cliCommand.validate()) {
-                    result = false;
-                    continue;
-                }
-                */
-                
                 cliCommand.validate();
                 errProc.checkError();
-                //System.out.println(cliCommand.getRuntimeHelpMsg(true));
                 
                 curCmdTree = null;
                 if (cliCommand.getCliCmdMode() == CliCommand.CliMode.diag)
@@ -78,16 +70,11 @@ public class CliXmlParser
                 
                 if (!curCmdTree.addCommand(cliCommand)) {
                     result = false;
-                    //System.out.println("4");
                     continue;
-                    //return false;
                 }
                 
                 cliCommand.errorMsg.checkError();
-                
-                //System.out.println("add UI <" + cliCommand.getKeywords() + "> done!");
             }
-            //result = true;
             
         } catch (ParserConfigurationException e) {  
             e.printStackTrace();  
@@ -213,29 +200,23 @@ public class CliXmlParser
             return;
         }
         
-        
-        
-        //if ()
-
         String keyword = parameterElement.getElementsByTagName("keyword").item(0).getTextContent().trim();
-        //System.out.println("parameter keyword= " + keyword);
-      
-        
         
         String dataType = parameterElement.getAttribute("datatype").trim();
-        if (!cliNodeParameter.setDataType(dataType))
+        if (!cliNodeParameter.setDataType(dataType)) {
             cliCommand.addErrorMsg("Error: unsupportted data type defined: <" + dataType + "> in parameter <" + keyword + ">");
+        }
         
         if (parameterElement.hasAttribute("unit")){
             String unit = parameterElement.getAttribute("unit").trim();
             cliNodeParameter.setUnit(unit);
         }
         
-        for (int i = 0; i < parameterNodes.getLength(); i++) 
-        {
+        for (int i = 0; i < parameterNodes.getLength(); i++) {
             Node curNode = parameterNodes.item(i);
-            if (curNode.getNodeType() != Node.ELEMENT_NODE)
+            if (curNode.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
+            }
             //System.out.println("CliXmlParser parseCliParameters: " + curNode.getNodeName());
             
             token = curNode.getNodeName().trim();
@@ -248,30 +229,31 @@ public class CliXmlParser
                         cliNodeParameter.setSyntaxKeyword(key);
                     else
                         cliNodeParameter.setSyntaxKeyword("{"+key+"}");
-                }
-                else if (cliNodeParameter.getRequired()) {
+                } else if (cliNodeParameter.getRequired()) {
                     result = cliNodeParameter.setSyntaxKeyword("<"+key+">");
-                }
-                else {
+                } else {
                     result = cliNodeParameter.setSyntaxKeyword("["+key+"]");
                 }
                 
-                if (!result)
+                if (!result) {
                     cliCommand.addErrorMsg("Error: keyword too long <" + key + ">");
-                //System.out.println("key="+cliNodeParameter.getKeyword());
+                }
             }
             else if (token.contentEquals("range")) {
-                if (!cliNodeParameter.setRange(curNode.getTextContent()))
+                if (!cliNodeParameter.setRange(curNode.getTextContent())) {
                     cliCommand.addErrorMsg("Error: unsupportted range format in parameter <" + keyword + ">: " + curNode.getTextContent());
+                }
             }
             
             else if (token.contentEquals("default")) {
-                if (!cliNodeParameter.setDefValue(curNode.getTextContent()))
+                if (!cliNodeParameter.setDefValue(curNode.getTextContent())) {
                     cliCommand.addErrorMsg("Error: unsupportted default format in parameter <" + keyword + ">:" + curNode.getTextContent());
+                }
             }
             
-            else if (token.contentEquals("help"))
+            else if (token.contentEquals("help")) {
                 cliNodeParameter.addHelp(curNode.getTextContent());
+            }
             
         }
         
@@ -283,21 +265,16 @@ public class CliXmlParser
     {
         String[] keywords = keyword.split(":");
         for (String token: keywords) {
-            CliNodeKeyword cliKeyword = new CliNodeKeyword();
             token.trim();
-            
-            
             if (token.length() > CliNode.CLI_MAX_KEYWORD_LENGTH) {
                 cliCommand.addErrorMsg("Error: keyword <" + token + "> is too longer" 
                             + " in CLI command: " + keyword + ", the maximun length is"
                             + CliNode.CLI_MAX_KEYWORD_LENGTH);
             }
-            cliKeyword.setSyntaxKeyword(token.trim());
-            
-            
-            
-            cliKeyword.setNodeShow(cliCommand.getDisplayMode());
 
+            CliNodeKeyword cliKeyword = new CliNodeKeyword();
+            cliKeyword.setSyntaxKeyword(token.trim());
+            cliKeyword.setNodeShow(cliCommand.getDisplayMode());
             cliCommand.addNode(cliKeyword);
         }
     }
@@ -317,33 +294,25 @@ public class CliXmlParser
             cliCommand.setDisplayMode(syntax.getAttribute("display"));
         }
         
-        /*
-        if (syntax.hasAttribute("type")){
-            String type = syntax.getAttribute("type");
-            if (!type.contentEquals("sys-parameter"))
-                cliCommand.addErrorMsg("Error: unsupportted type defiend: " + type);
-            
-            cliCommand.setType(type);
-        }
-        */
-        
         if (syntax.hasAttribute("source")){
             String source = syntax.getAttribute("source");
-            if (source.contentEquals("def"))
+            if (source.contentEquals("def")) {
                 cliCommand.setSource(CliCommand.Source.def);
-            else if (source.contentEquals("xml"))
+            } else if (source.contentEquals("xml")) {
                 cliCommand.setSource(CliCommand.Source.xml);
-            else
+            } else {
                 cliCommand.addErrorMsg("Error: unsupportted source defined: " + source);
+            }
         }
         
         String board = syntax.getAttribute("board");
-        if (board.contentEquals("all"))
+        if (board.contentEquals("all")) {
             cliCommand.setSCMCommand(false);
-        else if (board.contentEquals("scm"))
+        } else if (board.contentEquals("scm")) {
             cliCommand.setSCMCommand(true);
-        else
+        } else {
             cliCommand.addErrorMsg("Error: unsupportted board mode defined: " + board);
+        }
         
         String privilege = syntax.getAttribute("privilege");
         cliCommand.setPrivilege(privilege);

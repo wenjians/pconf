@@ -3,27 +3,6 @@
 import java.util.*;
 import java.io.*;
 
-/* for each board, there are three type of command tree exist
- *  main: command tree used for main mode
- *  diag: command tree used for diag mode
- *  tmd:  commadn tree actually is not used
- */
-/*
-class CliCommandTreeBoard {
-    CliCommandTree mainCmdTree;
-    CliCommandTree diagCmdTree;
-    CliCommandTree tdmCmdTree;
-    
-    CliCommandTreeBoard() {
-        mainCmdTree = new CliCommandTree();
-        diagCmdTree = new CliCommandTree();
-        tdmCmdTree = new CliCommandTree();
-    }
-    
-}
-*/
-
-
 class CliNodeList {
     
     private long myCliNodeListID;
@@ -74,10 +53,11 @@ class CliNodeList {
         str += "uiParseNd       " + prefix + "ParseNode" + getCliNodeID() + 
                " = {" + prefix + "ParseEnt" + getCliNodeID() + " };\n";
         
-        
         return str;
     }
 }
+
+
 
 public class CliCommandTree {
     
@@ -118,7 +98,6 @@ public class CliCommandTree {
         //System.out.println("CliCommand.addCommand");
         
         CliNode insertNode = null;
-        
         CliNodeList curNodes = cliCmdTree; 
         CliNodeList parNodes = cliCmdTree;
 
@@ -149,18 +128,12 @@ public class CliCommandTree {
 
 
     public CliCommand getCommand(CliCommand aCommand) {
-
-        CliCommand command=null;
-        
         //System.out.println("searching CLI: " + aCommand.getSyntaxString() + ":" + aCommand.getKeywordsCount());
         
-        //int i=0;
+        CliCommand command=null;
         CliNodeList curNodeList = cliCmdTree;
         
         for (CliNode cmdNode: aCommand.getNodes()) {
-            //i++;
-            //System.out.println(i+cmdNode.getKeyword());
-            
             CliNode curNode = isNodeExist(curNodeList, cmdNode);
             
             if (curNode == null) {
@@ -182,8 +155,7 @@ public class CliCommandTree {
     private CliNode isNodeExist(CliNodeList nodeList, CliNode aNode) {
         int idx=0;
 
-        for (idx=0; idx<nodeList.getCliEntities().size(); idx++) 
-        {
+        for (idx=0; idx<nodeList.getCliEntities().size(); idx++) {
             CliNode curNode = nodeList.getCliEntities().get(idx);
 
             // for function, do NOT compare the function name
@@ -191,14 +163,12 @@ public class CliCommandTree {
                 return curNode;
             
             /* for parameter, if there is only one parameter, then do not change keyword name */
-            if (curNode.isParameterNode() && aNode.isParameterNode())
-            {
+            if (curNode.isParameterNode() && aNode.isParameterNode()) {
             	if (nodeList.getCliEntities().size() == 1)
             		return curNode;
             }
             
-            if (curNode.equals(aNode))
-            {
+            if (curNode.equals(aNode)) {
                 return curNode;
             }
         }
@@ -210,21 +180,18 @@ public class CliCommandTree {
     {
         int idx=0;
 
-        for (idx=0; idx<nodeList.getCliEntities().size(); idx++) 
-        {
+        for (idx=0; idx<nodeList.getCliEntities().size(); idx++) {
             CliNode curNode = nodeList.getCliEntities().get(idx);
             
             if (curNode.getNodeType() != newNode.getNodeType())
                 continue;
             
-            if (cliCommand.isXMLCommand() && 
-                curNode.isParameterNode() && newNode.isParameterNode()) {
+            if (cliCommand.isXMLCommand() && curNode.isParameterNode() && newNode.isParameterNode()) {
+
                 String errMsg="";
                 
                 errMsg += "Error: UI Command duplicated with keylist <" + cliCommand.getKeywords() + ">";
                 errMsg += " new command function callback is <" + cliCommand.getFunctionName() + ">";
-
-                //System.out.println(errMsg);
                 errProc.addMessage(errMsg);
                 
                 return null;
@@ -241,12 +208,10 @@ public class CliCommandTree {
                 //System.out.println("curKeyword:"+curNode.getKeyword()+" newKeyword:" + newNode.getKeyword());
                 
                 String errMsg="";
-                
                 errMsg += "Error: UI Command duplicated with keylist <" + newCmd.getKeywords() + ">";
                 errMsg += " with function callback <" + curCmd.getFunctionName() + "> and <" + newCmd.getFunctionName() + ">";
-
-                //System.out.println(errMsg);
                 errProc.addMessage(errMsg);
+
                 return null;
             }
             

@@ -22,7 +22,7 @@ public class CliCommand
     
     private List<String> helps;
     private List<String> examples;
-    //private List<String> errorMsg;
+
     PConfError errorMsg;
     
     private int     privilege;
@@ -43,7 +43,6 @@ public class CliCommand
         fullKeywords  = "";
         functionName  = null;
         
-        //errorMsg = new ArrayList<String> ();
         errorMsg = PConfError.getInstance();
         helps    = new ArrayList<String> ();
         examples = new ArrayList<String> ();
@@ -52,10 +51,8 @@ public class CliCommand
         
         // the following two set to default, it is okay even not explicitly defined
         isScmCommand = false;
-        isCmdShow    = true;
-        
-        privilege    = 0;
-        //cliCmdType   = CLI_COMMAND_TYPE_NORMAL;
+        isCmdShow    = true;        
+        privilege    = CLI_COMMAND_PRIVILEGE_INVALID;
         
         cliSource    = Source.def;
         cliMode      = CliMode.main;
@@ -84,19 +81,6 @@ public class CliCommand
     public void setSCMCommand(boolean isScm)    { isScmCommand = isScm;     }
     public boolean isSCMCommand()               { return isScmCommand;      }
     
-
-    //public boolean isSystemParameter()          {  return (cliCmdType == CLI_COMMAND_TYPE_SYS_PARAM);   }
-    /*
-    public boolean setType(String type) {
-        if (type.contentEquals("sys-parameter")) {
-            cliCmdType = CLI_COMMAND_TYPE_SYS_PARAM;
-            return true;
-        }
-        
-        return false;
-    }
-    */
-
     public static int getPrivilege(String aPrivilege)
     {
         int result = CLI_COMMAND_PRIVILEGE_INVALID ;

@@ -10,8 +10,6 @@ public final class CliDefParser {
     private CliCommand.CliMode cliCmdMode = CliCommand.CliMode.main;
     private boolean isScmCommand=false;
     
-    //private String curParseLine;
-    
     private PConfError errProc = PConfError.getInstance();
     
     public void setSCMCommand(boolean isScm)        { isScmCommand = isScm; }
@@ -19,12 +17,8 @@ public final class CliDefParser {
     
     public void setCliCmdMode(CliCommand.CliMode newCliCmdMode) {
         //assert CliCommand.isValidCmdMode(newCliCmdMode);
-        
         cliCmdMode = newCliCmdMode;
     }
-    
-
-    //public int getCliCmdMode()                        { return cliCmdMode;    }
     
     public boolean parseDefFile(CliCommandTree cliCommandTree, String fileName)
     {
@@ -51,18 +45,12 @@ public final class CliDefParser {
                     if (isCommentLine(cmdLine))
                         continue;
                     
-                    //curParseLine = cmdLine;
-
-                    //System.out.println("CliDefParser::parseDefFile, Read : " + cmdLine);
-                    
                     CliCommand cliCommand = new CliCommand();
                     cliCommand.setCliCmdMode(cliCmdMode);
                     cliCommand.setSource(CliCommand.Source.def);
                     
                     if (!parseCmdLine(cmdLine, cliCommand)) {
                         result = false;
-                        //continue;
-                        //break;
                     }
                         
                     if (cliCommand.isSCMCommand() && (!isScmCommand))
@@ -71,13 +59,11 @@ public final class CliDefParser {
                     if (!cliCommand.validate()) {
                         result = false;
                         continue;
-                        //break;
                     }
                     
                     if (!cliCommandTree.addCommand(cliCommand)) {
                         result = false;
                         continue;
-                        //break;
                     }
                         
                     //System.out.println("CliDefParser::parseDefFile, output:" + cliCommand);
@@ -186,7 +172,6 @@ public final class CliDefParser {
         //System.out.println("CliDefParser::parseCmdLine, function name:" + cliCommand.getFunctionName());
 
         int idx;
-        //String fullKeywords = "";
         String curKey = "";
         
         // start parse the keyword
@@ -235,7 +220,6 @@ public final class CliDefParser {
         for (; idx<tokens.length; idx++)
         {
             //System.out.println("parse parameter: "+tokens[idx]);
-            
             CliNodeParameter cliParam = parseParam(cmdLine, tokens[idx], cliCommand.getDisplayMode());
             if (cliParam==null)
                 return false;

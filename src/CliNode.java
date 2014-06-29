@@ -4,10 +4,6 @@ import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Node;
-
-
-
 public class CliNode {
     enum NodeType {INVALID, KEYWORD, PARAMETER, FUNCTION}
     
@@ -153,12 +149,6 @@ public class CliNode {
 
 
 
-
-
-
-
-
-
 class CliNodeFunction extends CliNode {
 
     private CliCommand  cliCommand;
@@ -257,11 +247,9 @@ class CliDataTypeRule {
     
     boolean matches(String str, String aRule) {
         if (aRule.isEmpty()) {
-            //System.out.println("empty");
             return true;
         }
         
-        //System.out.println("rule = " + matchRule);
         Pattern pattern =Pattern.compile(aRule);
         Matcher matcher = pattern.matcher(str);
         return matcher.matches();
@@ -354,8 +342,11 @@ class CliNodeParameter extends CliNode {
     }
     
     public String getRequiredName() {
-        if (required)   return "mandatory";
-        else            return "optional";
+        if (required) {
+            return "mandatory";
+        } else  {
+            return "optional";
+        }
     }
 
     public boolean equals(CliNodeParameter aParam) {
@@ -612,8 +603,7 @@ class CliNodeParameter extends CliNode {
     
         if ((aKeyword.startsWith("[") && aKeyword.endsWith("]")) &&
             (!required) && (!getDataType().contentEquals("Case"))
-           )
-        {
+           ) {
             cruntimeString = "<" + aKeyword.substring(1, aKeyword.length()-1) + ">";
         }
         else
