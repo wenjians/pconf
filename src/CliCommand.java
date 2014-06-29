@@ -7,9 +7,6 @@ public class CliCommand
     public enum Source  { def, xml      }
     public enum CliMode { main, diag    }
     
-    public static final int CLI_COMMAND_TYPE_NORMAL     = 0;
-    public static final int CLI_COMMAND_TYPE_SYS_PARAM  = 1;
-    
     public static final int CLI_COMMAND_PRIVILEGE_INVALID   = 0;
     public static final int CLI_COMMAND_PRIVILEGE_NETMAN    = 1; /* it is admin */
     public static final int CLI_COMMAND_PRIVILEGE_ADMIN     = 1; /* it is admin */
@@ -58,7 +55,7 @@ public class CliCommand
         isCmdShow    = true;
         
         privilege    = 0;
-        cliCmdType   = CLI_COMMAND_TYPE_NORMAL;
+        //cliCmdType   = CLI_COMMAND_TYPE_NORMAL;
         
         cliSource    = Source.def;
         cliMode      = CliMode.main;
@@ -88,33 +85,35 @@ public class CliCommand
     public boolean isSCMCommand()               { return isScmCommand;      }
     
 
-    public boolean isSystemParameter()          {  return (cliCmdType == CLI_COMMAND_TYPE_SYS_PARAM);   }
+    //public boolean isSystemParameter()          {  return (cliCmdType == CLI_COMMAND_TYPE_SYS_PARAM);   }
+    /*
     public boolean setType(String type) {
-        if (type.equals("sys-parameter")) {
+        if (type.contentEquals("sys-parameter")) {
             cliCmdType = CLI_COMMAND_TYPE_SYS_PARAM;
             return true;
         }
         
         return false;
     }
+    */
 
     public static int getPrivilege(String aPrivilege)
     {
         int result = CLI_COMMAND_PRIVILEGE_INVALID ;
         
-        if (aPrivilege.equals("netman"))
+        if (aPrivilege.contentEquals("netman"))
         	result = CLI_COMMAND_PRIVILEGE_NETMAN;
-        else if (aPrivilege.equals("password"))
+        else if (aPrivilege.contentEquals("password"))
         	result = CLI_COMMAND_PRIVILEGE_NETMAN;
-        else if (aPrivilege.equals("user"))
+        else if (aPrivilege.contentEquals("user"))
         	result = CLI_COMMAND_PRIVILEGE_FUNCTION;
-        else if (aPrivilege.equals("view"))
+        else if (aPrivilege.contentEquals("view"))
         	result = CLI_COMMAND_PRIVILEGE_FUNCTION;
-        else if (aPrivilege.equals("system"))
+        else if (aPrivilege.contentEquals("system"))
         	result = CLI_COMMAND_PRIVILEGE_SYSTEM;
-        else if (aPrivilege.equals("update"))
+        else if (aPrivilege.contentEquals("update"))
         	result = CLI_COMMAND_PRIVILEGE_UPDATE;
-        else if (aPrivilege.equals("code"))
+        else if (aPrivilege.contentEquals("code"))
         	result = CLI_COMMAND_PRIVILEGE_CODE;
         else {
         	result = CLI_COMMAND_PRIVILEGE_INVALID;
@@ -171,11 +170,11 @@ public class CliCommand
     
     public boolean setDisplayMode(String mode)
     {
-        if (mode.equals("disp") || mode.equals("display"))  {
+        if (mode.contentEquals("disp") || mode.contentEquals("display"))  {
             isCmdShow = true;
             return true;
         }
-        else if (mode.equals("hide")) {
+        else if (mode.contentEquals("hide")) {
             isCmdShow = false;
             return true;
         }
@@ -229,23 +228,23 @@ public class CliCommand
     
     public boolean validate()
     {
-        //boolean result = true;
-
+        StringBuffer errMsg = new StringBuffer();
+        
         if (fullKeywords.isEmpty())
-            addErrorMsg("Error: NO keyword defined");
+            errMsg.append("Error: NO keyword defined");
         
         if (functionName.trim().length() == 0)
-            addErrorMsg("Error: No function name defined");
+            errMsg.append("Error: No function name defined");
         
         if (!isValidPrivilege(privilege))
-            addErrorMsg("Error: privilege is wrong defined");
+            errMsg.append("Error: privilege is wrong defined");
 
         if (isXMLCommand() && (helps.size()==0))
-            addErrorMsg("Error: NO help defined!");
+            errMsg.append("Error: NO help defined!");
         
         if ((cliMode == CliMode.main) && (isCmdShow == false))
         {
-    		addErrorMsg("Error: main mode UI deosnot support hide UI");
+            errMsg.append("Error: main mode UI deosnot support hide UI");
         }
         
         //to check all mandatory parameter must before optional 
@@ -261,37 +260,24 @@ public class CliCommand
                     optParamStarted = true;
                 
                 if (optParamStarted && param.getRequired() && isXMLCommand())
-                    addErrorMsg("mandatory parameter MUST before optional parameter");
+                    errMsg.append("mandatory parameter MUST before optional parameter");
                 
                 if ((getSource() == Source.xml) && (helps.size()==0))
-                    addErrorMsg("Error: help of parameter " + param.getSyntaxKeyword() + "is not defined!");
+                    errMsg.append("Error: help of parameter " + param.getSyntaxKeyword() + "is not defined!");
                     
                 
                 String paramErrorMsg = param.getErrorMsg(cliCmdType);
                 if (!paramErrorMsg.isEmpty()) {
-                    addErrorMsg(paramErrorMsg);
+                    errMsg.append(paramErrorMsg);
                 }
             }
         }
-        /*
-        if (errorMsg.hasErrorMsg()) {
-            result = false;
-        }
-        */
-        /*
-        if (!errorMsg.isEmpty())
-        {
-            String errCommand = "CLI command error found in keyword: <" + fullKeywords + ">";
-            errCommand += " with function: <" + functionName + ">";
-            
-            System.out.println(errCommand);
-            for (String s: errorMsg)
-                System.out.println(s);
-            System.out.println();
-            result = false;
-        }
-        */
         
+        if (errMsg.length() != 0) {
+            errMsg.insert(0, "CLI command error found in keyword: <" + fullKeywords + ">");
+            errorMsg.addMessage(errMsg.toString());
+        }
+
         return !errorMsg.hasErrorMsg();
     }
 
@@ -418,7 +404,7 @@ public class CliCommand
                         paramMsg = null;
                     }
                     
-                    if (param.getDataType().equals("Case"))
+                    if (param.getDataType().contentEquals("Case"))
                         keywordNeed = false;
                     
                     if (keywordNeed) {

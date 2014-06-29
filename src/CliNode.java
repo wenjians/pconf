@@ -61,7 +61,7 @@ public class CliNode {
     }
 
     public boolean equals(CliNode aNode) {
-        return ((aNode.getNodeType() == nodeType) && aNode.getKeyword().equals(getKeyword()));
+        return ((aNode.getNodeType() == nodeType) && aNode.getKeyword().contentEquals(getKeyword()));
     }
     
     
@@ -339,12 +339,12 @@ class CliNodeParameter extends CliNode {
     public boolean getRequired()     { return required;      }
     public boolean setRequired(String req) {
         req = req.trim();
-        if (req.equals("mandatory")) {
+        if (req.contentEquals("mandatory")) {
             required = true;
             requiredSet = true;
             return true;
         }
-        else if (req.equals("optional")){
+        else if (req.contentEquals("optional")){
             required = false;
             requiredSet = true;
             return true;
@@ -359,24 +359,24 @@ class CliNodeParameter extends CliNode {
     }
 
     public boolean equals(CliNodeParameter aParam) {
-        return (getKeyword().equals(aParam.getKeyword()) &&
-                dataType.equals(aParam.getDataType()) &&
-                value_def.equals(aParam.getDefValue()) &&
-                value_min.equals(aParam.getMinValue()) &&
-                value_max.equals(aParam.getMaxValue()) &&
-                value_unit.equals(aParam.getUnit()) &&
-                getRequiredName().equals(aParam.getRequiredName()));
+        return (getKeyword().contentEquals(aParam.getKeyword()) &&
+                dataType.contentEquals(aParam.getDataType()) &&
+                value_def.contentEquals(aParam.getDefValue()) &&
+                value_min.contentEquals(aParam.getMinValue()) &&
+                value_max.contentEquals(aParam.getMaxValue()) &&
+                value_unit.contentEquals(aParam.getUnit()) &&
+                getRequiredName().contentEquals(aParam.getRequiredName()));
     }
     
     public String getDataType()     { return dataType;      }
     
     boolean isParamString()         { 
-        return dataType.equals("Str") || dataType.equals("Ustr"); 
+        return dataType.contentEquals("Str") || dataType.contentEquals("Ustr"); 
     }
     
     public boolean setDataType(String aType)    {
         for (CliDataTypeRule rule: dataTypeRules) {
-            if (rule.dataType.equals(aType)) {
+            if (rule.dataType.contentEquals(aType)) {
                 dataTypeRule = rule;
                 dataType     = aType;
                 
@@ -611,7 +611,7 @@ class CliNodeParameter extends CliNode {
         String cruntimeString;
     
         if ((aKeyword.startsWith("[") && aKeyword.endsWith("]")) &&
-            (!required) && (!getDataType().equals("Case"))
+            (!required) && (!getDataType().contentEquals("Case"))
            )
         {
             cruntimeString = "<" + aKeyword.substring(1, aKeyword.length()-1) + ">";
@@ -644,7 +644,7 @@ class CliNodeParameter extends CliNode {
         result += "uiParse" + dataType;
         result += "},";
         
-        System.out.println("parameter <" + result + ">");
+        //System.out.println("parameter <" + result + ">");
         return result; 
     }
 }

@@ -256,7 +256,8 @@ class ConfigNode {
         
         sb.append(description.replace("\n", " "));
         
-        if ((dataType.enumValList != null) &&
+        if ((dataType != null) &&
+            (dataType.enumValList != null) &&
             (dataType.getName().contentEquals("enumeration"))) {
             for (ConfigDataEnum choice: dataType.enumValList) {
                 

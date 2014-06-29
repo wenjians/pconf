@@ -2,7 +2,7 @@
 
 import java.io.*;
 
-public class CliDefParser {
+public final class CliDefParser {
     
     public static final int CLI_TOKENS_MIN_COUNT  = 4; 
     public static final int CLI_TOKENS_MAX_COUNT  = 32;
@@ -11,6 +11,8 @@ public class CliDefParser {
     private boolean isScmCommand=false;
     
     //private String curParseLine;
+    
+    private PConfError errProc = PConfError.getInstance();
     
     public void setSCMCommand(boolean isScm)        { isScmCommand = isScm; }
     
@@ -232,7 +234,7 @@ public class CliDefParser {
         // start parse the parameters
         for (; idx<tokens.length; idx++)
         {
-            System.out.println("parse parameter: "+tokens[idx]);
+            //System.out.println("parse parameter: "+tokens[idx]);
             
             CliNodeParameter cliParam = parseParam(cmdLine, tokens[idx], cliCommand.getDisplayMode());
             if (cliParam==null)
@@ -354,7 +356,7 @@ public class CliDefParser {
     }
     
     private void printError(String description, String cmdLine) {
-        System.out.println("Error: " + description);
-        System.out.println("Error command line: " + cmdLine + "\n");
+        errProc.addMessage("Error: " + description);
+        errProc.addMessage("Error command line: " + cmdLine + "\n");
     }
 }

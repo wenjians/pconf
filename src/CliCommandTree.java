@@ -94,6 +94,8 @@ public class CliCommandTree {
      */
     private List<CliNodeList> cliCmdNodeLists;
     
+    static private PConfError errProc = PConfError.getInstance();
+    
     public CliCommandTree()
     {
         curCliNodeListID = 0;
@@ -222,7 +224,9 @@ public class CliCommandTree {
                 errMsg += "Error: UI Command duplicated with keylist <" + cliCommand.getKeywords() + ">";
                 errMsg += " new command function callback is <" + cliCommand.getFunctionName() + ">";
 
-                System.out.println(errMsg);
+                //System.out.println(errMsg);
+                errProc.addMessage(errMsg);
+                
                 return null;
             }
             
@@ -241,11 +245,12 @@ public class CliCommandTree {
                 errMsg += "Error: UI Command duplicated with keylist <" + newCmd.getKeywords() + ">";
                 errMsg += " with function callback <" + curCmd.getFunctionName() + "> and <" + newCmd.getFunctionName() + ">";
 
-                System.out.println(errMsg);
+                //System.out.println(errMsg);
+                errProc.addMessage(errMsg);
                 return null;
             }
             
-            if (curNode.getSyntaxKeyword().equals(newNode.getSyntaxKeyword()))
+            if (curNode.getSyntaxKeyword().contentEquals(newNode.getSyntaxKeyword()))
                 return curNode;
             
             if (curNode.getSyntaxKeyword().compareTo(newNode.getSyntaxKeyword())>0)
@@ -365,6 +370,7 @@ public class CliCommandTree {
         return true;
     }   
     
+    /*
     public StringBuffer getSystemPrameter() {
         StringBuffer result = new StringBuffer();
         
@@ -386,4 +392,5 @@ public class CliCommandTree {
         
         return result;
     }
+    */
 }

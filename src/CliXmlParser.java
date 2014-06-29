@@ -15,6 +15,7 @@ import org.xml.sax.*;
 public class CliXmlParser 
 {
     ConfigTree configTree;
+    PConfError errProc = PConfError.getInstance();
     
     
     public void setConfigTree(ConfigTree configTree) {
@@ -47,27 +48,26 @@ public class CliXmlParser
                 if (cliElement.getNodeType() != Node.ELEMENT_NODE)
                     continue;
 
-                CliCommand cliCommand = parserCliCommand(cliElement);
-                //System.out.println("command parse finished");
+                CliCommand cliCommand = parseCliCommand(cliElement);
                 if (cliCommand == null) {
-                    //System.out.println("1");
                     result = false;
-                    //continue;
-                    //return false;
                 }
 
+                //System.out.println("command " + cliCommand.getKeywords() + " parse finished!");
+
                 if (cliCommand.isSCMCommand() && (!isScmCommand)) {
-                    //System.out.println("2");
                     continue;
                 }
                 
+                /*
                 if (!cliCommand.validate()) {
                     result = false;
-                    //System.out.println("3");
                     continue;
-                    //return false;
                 }
+                */
                 
+                cliCommand.validate();
+                errProc.checkError();
                 //System.out.println(cliCommand.getRuntimeHelpMsg(true));
                 
                 curCmdTree = null;
@@ -82,6 +82,8 @@ public class CliXmlParser
                     continue;
                     //return false;
                 }
+                
+                cliCommand.errorMsg.checkError();
                 
                 //System.out.println("add UI <" + cliCommand.getKeywords() + "> done!");
             }
@@ -110,7 +112,7 @@ public class CliXmlParser
     }
     
 
-    private CliCommand parserCliCommand(Element cliElement)
+    private CliCommand parseCliCommand(Element cliElement)
     {
         NodeList commandNodes = cliElement.getChildNodes();  
         if (commandNodes == null) return null;
@@ -126,23 +128,24 @@ public class CliXmlParser
                 continue;
        
             // syntax MUST be firstly analysised to get some basic information
-            if (node.getNodeName().equals("syntax"))
-                parseCliSyntax(node, cliCommand);
+            if (node.getNodeName().contentEquals("syntax"))
+                parseCliCommandSyntax(node, cliCommand);
             
              // this IS NEED, to be added
-            if (node.getNodeName().equals("keyword"))
+            //System.out.println("node name=" + node.getNodeName());
+            if (node.getNodeName().contentEquals("keyword"))
             {
                 parseCliKeywords(node.getTextContent(), cliCommand);
                 //System.out.println("keyword=<" + cliCommand.getKeywords()+">");
             }
             
-            else if (node.getNodeName().equals("help"))
+            else if (node.getNodeName().contentEquals("help"))
                 cliCommand.addHelp(node.getTextContent());
             
-            else if (node.getNodeName().equals("example"))
+            else if (node.getNodeName().contentEquals("example"))
                 cliCommand.addExample(node.getTextContent());
             
-            else if (node.getNodeName().equals("param"))
+            else if (node.getNodeName().contentEquals("param"))
                 parseCliParameters(node, cliCommand);
         }
         
@@ -204,8 +207,8 @@ public class CliXmlParser
             cliNodeParameter.copyFromConfigNode(configNode);
             cliCommand.addNode(cliNodeParameter);
             
-            System.out.println("CliXmlParser.parseCliParameters, configNode: " + configNode);
-            System.out.println("CliXmlParser.parseCliParameters, CliNodeParameter: " + cliNodeParameter);
+            //System.out.println("CliXmlParser.parseCliParameters, configNode: " + configNode);
+            //System.out.println("CliXmlParser.parseCliParameters, CliNodeParameter: " + cliNodeParameter);
             
             return;
         }
@@ -237,10 +240,10 @@ public class CliXmlParser
             
             token = curNode.getNodeName().trim();
 
-            if (token.equals("keyword")) {
+            if (token.contentEquals("keyword")) {
                 boolean result = true;
                 String key = curNode.getTextContent().trim();
-                if (cliNodeParameter.getDataType().equals("Case")) {
+                if (cliNodeParameter.getDataType().contentEquals("Case")) {
                     if (key.startsWith("{"))
                         cliNodeParameter.setSyntaxKeyword(key);
                     else
@@ -257,17 +260,17 @@ public class CliXmlParser
                     cliCommand.addErrorMsg("Error: keyword too long <" + key + ">");
                 //System.out.println("key="+cliNodeParameter.getKeyword());
             }
-            else if (token.equals("range")) {
+            else if (token.contentEquals("range")) {
                 if (!cliNodeParameter.setRange(curNode.getTextContent()))
                     cliCommand.addErrorMsg("Error: unsupportted range format in parameter <" + keyword + ">: " + curNode.getTextContent());
             }
             
-            else if (token.equals("default")) {
+            else if (token.contentEquals("default")) {
                 if (!cliNodeParameter.setDefValue(curNode.getTextContent()))
                     cliCommand.addErrorMsg("Error: unsupportted default format in parameter <" + keyword + ">:" + curNode.getTextContent());
             }
             
-            else if (token.equals("help"))
+            else if (token.contentEquals("help"))
                 cliNodeParameter.addHelp(curNode.getTextContent());
             
         }
@@ -283,10 +286,15 @@ public class CliXmlParser
             CliNodeKeyword cliKeyword = new CliNodeKeyword();
             token.trim();
             
-            /*
-            if (!cliKeyword.setSyntaxKeyword(token.trim()))
-                cliCommand.addErrorMsg("Error: keyword is too longer: " + token);
-            */
+            
+            if (token.length() > CliNode.CLI_MAX_KEYWORD_LENGTH) {
+                cliCommand.addErrorMsg("Error: keyword <" + token + "> is too longer" 
+                            + " in CLI command: " + keyword + ", the maximun length is"
+                            + CliNode.CLI_MAX_KEYWORD_LENGTH);
+            }
+            cliKeyword.setSyntaxKeyword(token.trim());
+            
+            
             
             cliKeyword.setNodeShow(cliCommand.getDisplayMode());
 
@@ -296,12 +304,12 @@ public class CliXmlParser
     
     /* <syntax mode="diag" board="all" type= "sys-parameter" privilege="view" function="UIgfi_log_show_status"/> */
     // if attribute is not defined, then getAttribute("type") return empty string ""
-    private void parseCliSyntax(Node node, CliCommand cliCommand)
+    private void parseCliCommandSyntax(Node node, CliCommand cliCommand)
     {
         Element syntax = (Element)node;
 
         String mode = syntax.getAttribute("mode");
-        if (!mode.equals(CliCommand.CliMode.main.toString()) && !mode.equals(CliCommand.CliMode.diag.toString()))
+        if (!mode.contentEquals(CliCommand.CliMode.main.toString()) && !mode.contentEquals(CliCommand.CliMode.diag.toString()))
             cliCommand.addErrorMsg("Error: unsupportted mode defined: " + mode);
         cliCommand.setCliCmdMode(CliCommand.CliMode.valueOf(mode));
 
@@ -309,28 +317,30 @@ public class CliXmlParser
             cliCommand.setDisplayMode(syntax.getAttribute("display"));
         }
         
+        /*
         if (syntax.hasAttribute("type")){
             String type = syntax.getAttribute("type");
-            if (!type.equals("sys-parameter"))
+            if (!type.contentEquals("sys-parameter"))
                 cliCommand.addErrorMsg("Error: unsupportted type defiend: " + type);
             
             cliCommand.setType(type);
         }
+        */
         
         if (syntax.hasAttribute("source")){
             String source = syntax.getAttribute("source");
-            if (source.equals("def"))
+            if (source.contentEquals("def"))
                 cliCommand.setSource(CliCommand.Source.def);
-            else if (source.equals("xml"))
+            else if (source.contentEquals("xml"))
                 cliCommand.setSource(CliCommand.Source.xml);
             else
                 cliCommand.addErrorMsg("Error: unsupportted source defined: " + source);
         }
         
         String board = syntax.getAttribute("board");
-        if (board.equals("all"))
+        if (board.contentEquals("all"))
             cliCommand.setSCMCommand(false);
-        else if (board.equals("scm"))
+        else if (board.contentEquals("scm"))
             cliCommand.setSCMCommand(true);
         else
             cliCommand.addErrorMsg("Error: unsupportted board mode defined: " + board);
