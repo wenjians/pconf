@@ -4,6 +4,8 @@ import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Node;
+
 
 
 public class CliNode {
@@ -26,6 +28,8 @@ public class CliNode {
     // for function, it is function name
     private String  keyword;        //
     private String  syntaxKeyword;
+    
+    static PConfError errProc = PConfError.getInstance();
     
     
     CliNode(NodeType aNodeType)  {
@@ -272,7 +276,7 @@ class CliDataTypeRule {
 class CliNodeParameter extends CliNode {
 
     ///^#?([a-f0-9]{6}|[a-f0-9]{3})$/
-    private static final String ruleUint = "^([0-9]\\d*|0x[0-9a-fA-F]+)(ul)?$";      // unsigned int
+    private static final String ruleUint = "^([0-9]\\d*|0x[0-9a-fA-F]+)(ul)?$"; // unsigned int
     private static final String ruleInt  = "^(-?[0-9]\\d*||0x[0-9a-fA-F]+)$";   // signed int
     private static final String ruleIpa  = "^\\d+\\.\\d+\\.\\d+\\.\\d+$";       // IPv4 address
     private static final String ruleZero = "0";                 // 0
@@ -307,6 +311,9 @@ class CliNodeParameter extends CliNode {
     
     private List<String> helps;
     
+    String referName;
+    CliCommand cliCommand;
+    
     CliNodeParameter()
     {
         super(CliNode.NodeType.PARAMETER);
@@ -316,6 +323,7 @@ class CliNodeParameter extends CliNode {
         value_min = "";
         value_max = "";
         value_unit= "";
+        referName = "";
     
         rangeSet    = false;
         requiredSet = false;
@@ -489,17 +497,111 @@ class CliNodeParameter extends CliNode {
         return errMsg;
     }
     
-    void copyFromConfigNode(ConfigNode configNode) {
-        value_def = configNode.defaultVal;
+    boolean copyFromConfigNode(ConfigNode configNode) {
+        if (!configNode.isLeaf() && !configNode.isLeafList()) {
+            return false;
+        }
+        ConfigType dataType = configNode.getGwBuiltinType();
         
+        // get the data type
+        String yangTypeName = dataType.getName();
+        String cliTypeName;
+        if (yangTypeName.contentEquals("uint32")) {
+            cliTypeName = "Int";
+        } else if (yangTypeName.contentEquals("int32")) {
+            cliTypeName = "Sint";
+        } else if (yangTypeName.contentEquals("string-word")) {
+            cliTypeName = "Ustr";
+        } else if (yangTypeName.contentEquals("string")) {
+            cliTypeName = "Str";
+        } else if (yangTypeName.contentEquals("enumeration")) {
+            cliTypeName = "Case";
+        } else if (yangTypeName.contentEquals("ip-address")) {
+            cliTypeName = "Ipng";
+        } else if (yangTypeName.contentEquals("ipv6-address")) {
+            cliTypeName = "Ip6";
+        } else if (yangTypeName.contentEquals("ipv4-address")) {
+            cliTypeName = "Ipa";
+        } else if (yangTypeName.contentEquals("memory-address")) {
+            cliTypeName = "Addr";
+        } else if (yangTypeName.contentEquals("mac-address")) {
+            cliTypeName = "Macad";
+        } else {
+            cliTypeName = "";
+        }
+        if (!setDataType(cliTypeName)) {
+            errProc.addMessage("Error: unsupportted data type defined: <" + dataType 
+                    + "> in reference parameter <" + yangTypeName + ">");
+            return false;
+        }
         
-        String[] range_value = keyword.split(":");
-        for (String token: keywords) {
-            CliNodeKeyword cliKeyword = new CliNodeKeyword();
-            token.trim();
+        // get the unit
+        setUnit(dataType.getUnits());
+
+        // get the keyword from CliNode
+        String localKey="";
+        if (configNode.dataType.isEnum()) {
+            for (ConfigDataEnum enumVal: configNode.dataType.enumValList) {
+                if (localKey.length()!=0) {
+                    localKey += "|";
+                }
+                localKey += enumVal.name;
+            }
             
-        String range[]  = 
-        //value_min = 
+            localKey = "{" + localKey + "}";
+        } else if (getRequired()) {
+            localKey = "<" + configNode.getName() + ">";
+        } else {
+            localKey = "[" + configNode.getName() + "]";
+        }
+        
+        setSyntaxKeyword(localKey);
+
+        
+        if (!setDefValue(dataType.getDefaultVal())) {
+            errProc.addMessage("Error: unsupportted default format in reference parameter <" 
+                        + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
+            return false;
+        }
+
+        
+        String min, max;
+        String[] range_list = null;
+        
+        if (dataType.isNumber()) {
+            // split with "|" or ".." with regular express
+            range_list = dataType.range.split("(\\|)|(\\.\\.)");
+        }
+        else if (dataType.isString()) {
+            range_list = dataType.length.split("(\\|)|(\\.\\.)");
+        }
+        else {
+            // others no range need
+        }
+        
+        if ((range_list== null) || (range_list.length == 0)) {
+            min = "0";
+            max = "0";
+        }
+        else if (range_list.length == 1) {
+            min = range_list[0];
+            max = range_list[0];
+        }
+        else {
+            min = range_list[0];
+            max = range_list[range_list.length-1];
+        }
+
+
+        if (!setRange(min + ", " + max)) {
+            errProc.addMessage("Error: unsupportted range format in reference parameter <" 
+                    + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
+            return false;
+        }
+
+        addHelp(configNode.getDescription());
+        
+        return true;
     }
     
     /* for CRuntime string, in *.def definition, if it is not a *case* parameter, then

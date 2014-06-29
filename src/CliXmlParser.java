@@ -47,7 +47,7 @@ public class CliXmlParser
                 if (cliElement.getNodeType() != Node.ELEMENT_NODE)
                     continue;
 
-                CliCommand cliCommand = parserOneCliCommand(cliElement);
+                CliCommand cliCommand = parserCliCommand(cliElement);
                 //System.out.println("command parse finished");
                 if (cliCommand == null) {
                     //System.out.println("1");
@@ -110,7 +110,7 @@ public class CliXmlParser
     }
     
 
-    private CliCommand parserOneCliCommand(Element cliElement)
+    private CliCommand parserCliCommand(Element cliElement)
     {
         NodeList commandNodes = cliElement.getChildNodes();  
         if (commandNodes == null) return null;
@@ -172,6 +172,7 @@ public class CliXmlParser
         if (parameterNodes == null) return;
         
         CliNodeParameter cliNodeParameter = new CliNodeParameter();
+        cliNodeParameter.cliCommand = cliCommand;
         
         String required = parameterElement.getAttribute("required").trim();
         if (!cliNodeParameter.setRequired(required)) {
@@ -190,8 +191,16 @@ public class CliXmlParser
             if (configNode == null) {
                 cliCommand.addErrorMsg("Error: can not find parameter: <" + paramName 
                                      + "> in command <" + cliCommand.getSyntaxString() + ">");
+                return;
             }
 
+            if (!configNode.isLeaf() && !configNode.isLeafList()) {
+                cliCommand.addErrorMsg("Error: parameter reference: <" + paramName 
+                        + "> is not valid, in command <" + cliCommand.getSyntaxString() + ">"
+                        + ", it must be a leaf or a leaf-list");
+                return;
+            }
+            cliNodeParameter.referName = paramName;
             cliNodeParameter.copyFromConfigNode(configNode);
             cliCommand.addNode(cliNodeParameter);
             

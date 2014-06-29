@@ -142,35 +142,6 @@ class ConfigExportPDD extends ConfigExport{
 
     int curRow;
             
-
-    String getDescription(ConfigNode configNode) {
-        StringBuffer sb = new StringBuffer();
-        
-        sb.append(configNode.description.replace("\n", " "));
-        
-        
-        if ((configNode.dataType.enumValList != null) &&
-            (configNode.dataType.getName().contentEquals("enumeration"))) {
-            for (ConfigDataEnum choice: configNode.dataType.enumValList) {
-                
-                if (choice.descr.length() == 0)
-                    continue;
-                
-                if (sb.length() == 0) {
-                    sb.append("'");
-                } else {
-                    sb.append("\n");
-                }
-               
-                sb.append("-" + choice.name + ":");
-                sb.append(choice.descr.replace("\n", " "));
-                //sb.append("\n");
-            }
-        }
-        
-        return sb.toString();
-    }
-    
     @Override
     void exportLeaf(ConfigNode configNode) {
         
@@ -212,7 +183,7 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_SCOPE,curRow, configNode.getScopeName(), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_DESCP,curRow, getDescription(configNode), normalFormat);
+            label = new Label(COLUMN_DESCP,curRow, configNode.getDescription(), normalFormat);
             sysParamSheet.addCell(label);
             
             label = new Label(COLUMN_FORMAT,curRow, configNode.dataType.getGwBuiltinName(), normalFormat);

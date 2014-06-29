@@ -31,7 +31,7 @@ class ConfigNode {
 
 	static enum NodeType { 
 		INVALID, MODULE, CONTAINER, LEAF, LEAF_LIST, LIST, 
-		DATA_TYPE, TYPE_DEF, TYPE_BUILTIN 	
+		DATA_TYPE, TYPE_DEF, TYPE_BUILTIN, TYPE_GWBUILTIN 	
 	}
     
     static enum Scope { INVALID, SYSTEM, CUSTOMER, ELEMENT }
@@ -172,6 +172,19 @@ class ConfigNode {
     }
     
     
+    /* here only assume that only two level is derived type definition */
+    public ConfigType getGwBuiltinType() {
+        if (dataType.isBuiltin()) {
+            return dataType;
+        }
+        
+        ConfigTypedef type = dataType.typeDefinition;
+        if (type.dataType.isBuiltin()) {
+            return type.dataType;
+        }
+        
+        return null;
+    }
 
     public String getStatus() {
 		return status;
@@ -239,7 +252,29 @@ class ConfigNode {
     }
 
     String getDescription()  {  
-        return description;          
+        StringBuffer sb = new StringBuffer();
+        
+        sb.append(description.replace("\n", " "));
+        
+        if ((dataType.enumValList != null) &&
+            (dataType.getName().contentEquals("enumeration"))) {
+            for (ConfigDataEnum choice: dataType.enumValList) {
+                
+                if (choice.descr.length() == 0)
+                    continue;
+                
+                if (sb.length() == 0) {
+                    sb.append("'");
+                } else {
+                    sb.append("\n");
+                }
+               
+                sb.append("-" + choice.name + ":");
+                sb.append(choice.descr.replace("\n", " "));
+            }
+        }
+        
+        return sb.toString();
     }
     
     void setDescription(String _desc)   {  
