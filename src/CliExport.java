@@ -105,7 +105,7 @@ public class CliExport {
 
 
 
-class CliCheckPrivilege extends CliExport {
+class ClikPrivilegeCheck extends CliExport {
     
     class PrivilegeRule {
         String matchString;
@@ -295,7 +295,7 @@ class CliCheckPrivilege extends CliExport {
 
 
 
-class CliExportUIList extends CliExport {
+class CliListExport extends CliExport {
 
     String boardTypeName;
     StringBuffer exportResult;
@@ -398,7 +398,7 @@ class CliExportUIList extends CliExport {
 
 
 
-class CliExportXML extends CliExport{
+class CliXmlExport extends CliExport{
 
     Document document;
     Element root;
@@ -535,7 +535,7 @@ class CliExportXML extends CliExport{
 
 
 
-class CliCheckKeywordLen extends CliExport {
+class CliKeywordLenCheck extends CliExport {
     
     String keyworkFileName = "/VOBS/MediaGW/tools/various/CliShell/bin/cli_keyword_list.xml";
     
@@ -638,7 +638,7 @@ class CliCheckKeywordLen extends CliExport {
 
 
 
-class CliExportHTMLHelp extends CliExport{
+class CliHtmlHelp extends CliExport{
     
     private enum HtmlSection  { cmdList, cmdDetail  }
     

@@ -1,7 +1,11 @@
 import java.util.List;
 import java.util.ArrayList;
 
-
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 //import java.io.*;
 //import cli.*;;
 
@@ -178,7 +182,7 @@ public class PConfMain {
         exportConfig();
         
         // TODO dumy for compiler, need change later
-        parseCli("", "");
+        exportCliDefine("", "");
     }
 
 
@@ -267,12 +271,7 @@ public class PConfMain {
     private static boolean exportCliTree(String boardType, String uiDefPath) {
         
         System.out.println("exportCliTree board:" + boardType + ", ui definition path:" + uiDefPath);
-        
-        /*
-        boolean isScmCmd = false;        
-        if (boardType.contains("scm"))
-            isScmCmd = true;
-        */
+
     
         // produce the main and diag command tree in C file
         String outputFileName;
@@ -289,7 +288,7 @@ public class PConfMain {
     }
     
     
-    private static boolean parseCli(String boardType, String uiDefPath) {
+    private static boolean exportCliDefine(String boardType, String outputPath) {
         /*
         boolean isScmCmd = false;
         String  inputFileName;
@@ -304,76 +303,21 @@ public class PConfMain {
         //CliCommandTreeBoard cmdTreeBoard = new CliCommandTreeBoard();
         
 
-
-        /*
-        CliDefParser defParser = new CliDefParser();
-        defParser.setSCMCommand(isScmCmd);
-        
-        // process the tdm command from uitrtdm_scm.def, here scm is board type, can be cim, mcm, ...
-        // actually, it is not used, here just for history compatible
-        inputFileName = "uitrtdm_"+boardType+".def";
-        defParser.setCliCmdMode(CliCommand.CliMode.main);
-        if (!defParser.parseDefFile(cliTdmCmdTree, inputFileName))
-            return false;
-        
-        // process the main command from uitrtop_scm.def, here scm is board type, can be cim, mcm, ...
-        inputFileName = "uitrtop_"+boardType+".def";
-        defParser.setCliCmdMode(CliCommand.CliMode.main);
-        if (!defParser.parseDefFile(cliMainCmdTree, inputFileName))
-            return false;
-        
-        // process the main command from uitrdiag_scm.def, here scm is board type, can be cim, mcm, ...
-        inputFileName = "uitrdiag_"+boardType+".def";
-        defParser.setCliCmdMode(CliCommand.CliMode.diag);
-        if (!defParser.parseDefFile(cliDiagCmdTree, inputFileName))
-            return false;
-        */
-        
-        
-        /*
-        // process the xml to command tree  ui_scm.xml, here scm is board type, can be cim, mcm, ...
-        xmlParser.setSCMCommand(isScmCmd);
-        inputFileName = "ui_top_"+boardType+".xml";
-        if (!xmlParser.parseXMLFile(inputFileName, cliMainCmdTree, cliDiagCmdTree))
-            return false;
-        */
-        
-        
-        /*
-        CliCheckKeywordLen cliKeyword = new CliCheckKeywordLen();
+        CliKeywordLenCheck cliKeyword = new CliKeywordLenCheck();
         if (!cliKeyword.export(cliMainCmdTree, cliDiagCmdTree))
             return false;
-        */
         
-        /*
-        // produce the main and diag command tree in C file
-        outputFileName = "uitrtdm_" +boardType+".c";
-        cliTdmCmdTree.exportToCRuntime(outputFileName, "");
-        
-        outputFileName = "uitrtop_" +boardType+".c";
-        cliMainCmdTree.exportToCRuntime(outputFileName, "top");
-        
-        outputFileName = "uitrdiag_" +boardType+".c";
-        cliDiagCmdTree.exportToCRuntime(outputFileName, "diag");
-        */
-        
-        
-        //CliExport cliExport = new CliExport();
-        /*
-        CliExportXML cliXml = new CliExportXML();
-        outputFileName = imagePath+"/ui_" + boardType + "_all.xml";
+        CliXmlExport cliXml = new CliXmlExport();
+        String outputFileName = outputPath+"/ui_" + boardType + "_all.xml";
         cliXml.export(outputFileName, cliMainCmdTree, cliDiagCmdTree);
-        */
         
         /* the following is check the UI privilege */
-        /*
-        CliCheckPrivilege cliCheck = new CliCheckPrivilege();
+        String defPrivilegeRuleFile = "";
+        ClikPrivilegeCheck cliCheck = new ClikPrivilegeCheck();
         cliCheck.setBordType(boardType);
         cliCheck.setRuleFileName(defPrivilegeRuleFile);
-        */
         
         /* check the privilege error and print during compiler */
-        /*
         StringBuffer privilegeCheckResult = new StringBuffer();
         privilegeCheckResult.append(cliCheck.export(cliMainCmdTree));
         if (privilegeCheckResult.length() > 0)
@@ -387,34 +331,15 @@ public class PConfMain {
             return false;
         }
         System.out.println("check main command privilege finished!");
-        */
 
-        /*
-        StringBuffer checkResult = new StringBuffer();
-        outputFileName = imagePath+"/../ui_privilege_check.csv";
-        
-        checkResult.append(cliCheck.filterBoard(outputFileName));
-        checkResult.append(cliCheck.export(cliMainCmdTree));
-        //checkResult.append(existFilterResult);
-        if (checkResult.length() > 0)
-            checkResult.insert(0, cliCheck.getTitle());
-
-        // if size is zero, then will remove the file
-        //System.out.println("file length:" + checkResult.length() + "\n");
-        //System.out.println("String: <" + checkResult + ">\n");
-        writeFile(outputFileName, checkResult);
-
-        System.out.println("check main command privilege, create file <" + outputFileName + "> done!");
-        */
-        
+      
         
         /* the following will export the UI list */
-        /*
-        CliExportUIList cliUIList = new CliExportUIList();
+        CliListExport cliUIList = new CliListExport();
         cliUIList.setBordType(boardType);
         
         StringBuffer uiListResult = new StringBuffer();
-        String cliListOutputFileName = imagePath+"/../ui_list.csv";
+        String cliListOutputFileName = outputPath+"/../ui_list.csv";
         
         uiListResult.append(cliUIList.filterBoard(cliListOutputFileName));
         uiListResult.append(cliUIList.export(cliMainCmdTree, cliDiagCmdTree));
@@ -424,27 +349,44 @@ public class PConfMain {
 
         writeFile(cliListOutputFileName, uiListResult);
         System.out.println("export CLI command list to file <" + cliListOutputFileName + "> done!");
-        */
         
         /* the following is get the HTML help */
-        /*
-        CliExportHTMLHelp htmlHelp = new CliExportHTMLHelp();
+        CliHtmlHelp htmlHelp = new CliHtmlHelp();
         StringBuffer htmlMsg = htmlHelp.export(cliMainCmdTree, cliDiagCmdTree);
-        outputFileName = imagePath+"/ui_" + boardType + "_help.html";
+        outputFileName = outputPath+"/ui_" + boardType + "_help.html";
         writeFile(outputFileName, htmlMsg);
-        
-        if (isScmCmd) {
-            CliExportParameter exportParam = new CliExportParameter();
-            outputFileName = imagePath+"/ui_" + boardType + "_sysparam.xls";
-            //System.out.println("create system parameter file <" + outputFileName + "> ...");
-            exportParam.export(outputFileName, cliMainCmdTree);
-            System.out.println("create system parameter file <" + outputFileName + "> done!");
-        }
-        */
         
         return true;
     }
 
+    
+    private static void writeFile(String outFileName, StringBuffer buffer)
+    {
+        /* if the size is zero, means remove the file */
+        if (buffer.length() == 0) {
+        
+            File file = new File(outFileName);
+            if (file.exists())
+            {
+                //System.out.println("remove file: " + outFileName + "\n");
+                file.delete();
+            }
+            return;
+        }
+        
+        try {
+            PrintWriter out =
+                    new PrintWriter(new BufferedWriter(new FileWriter(outFileName)));
+            try {
+                out.println(buffer);
+                System.out.println("write file <" + outFileName + "> successfully!");
+            } finally {
+                out.close();
+            }
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }     
     
     private static void printHelpMsg() {
         String helpMsg = "";
