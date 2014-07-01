@@ -73,6 +73,8 @@ public class PConfMain {
     public static final int COMMAND_PDD      = 3;
     public static final int COMMAND_CLIXML   = 4;
     public static final int COMMAND_CLITREE  = 5;
+    public static final int COMMAND_CLIOUTPUT= 6;
+    public static final int COMMAND_BOARD    = 7;
     
     private static PConfCommand[] commandList = {
         //type,  range need, default rule, minimal rule, maximum rule
@@ -81,7 +83,9 @@ public class PConfMain {
         new PConfCommand("-pyang",  0),
         new PConfCommand("-pdd",    1),
         new PConfCommand("-clixml", 2),
-        new PConfCommand("-clitree",2),
+        new PConfCommand("-clitree", 2),
+        new PConfCommand("-cliexport", 1),
+        new PConfCommand("-board", 1),
         
     };
     
@@ -147,7 +151,7 @@ public class PConfMain {
         }
 
         if ((commandList[COMMAND_YANG_DIR].paramList.size() == 0) || 
-                (commandList[COMMAND_YIN_DIR].paramList.size() == 0))
+            (commandList[COMMAND_YIN_DIR].paramList.size() == 0))
         {
             errProc.addMessage("Both Yang input and output file must specified!\n");
         }
@@ -182,7 +186,10 @@ public class PConfMain {
         exportConfig();
         
         // TODO dumy for compiler, need change later
-        exportCliDefine("", "");
+        if (commandList[COMMAND_CLIOUTPUT].paramSet) {
+            exportCliDefine("", "");
+        }
+        
     }
 
 
