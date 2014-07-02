@@ -519,6 +519,7 @@ class CliXmlExport extends CliExport{
             StreamResult result = new StreamResult(pw); 
             //XMLOutputter out;
             transformer.transform(source, result); 
+            pw.close();
             System.out.println("create XML file <"+ fileName + "> successful!"); 
         } catch (TransformerConfigurationException e) { 
         System.out.println(e.getMessage()); 
