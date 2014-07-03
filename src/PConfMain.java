@@ -142,10 +142,14 @@ public class PConfMain {
                 break;
             }
             
-            for (int i=0; i<command.paramCnt; i++) {
-                argc ++;
-                command.paramList.add(args[argc]);
-                command.setParameter();
+            if (command.paramCnt == 0) {
+            	command.setParameter();
+            } else {
+            	for (int i=0; i<command.paramCnt; i++) {
+            		argc ++;
+            		command.paramList.add(args[argc]);
+            		command.setParameter();
+            	}
             }
             argc++;
         }
