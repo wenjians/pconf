@@ -397,7 +397,7 @@ class CliListExport extends CliExport {
 
 
 
-
+/*
 class CliXmlExport extends CliExport{
 
     Document document;
@@ -532,7 +532,7 @@ class CliXmlExport extends CliExport{
         } 
     }   
 }
-
+*/
 
 
 

@@ -73,7 +73,7 @@ public class PConfMain {
     public static final int COMMAND_PDD      = 3;
     public static final int COMMAND_CLIXML   = 4;
     public static final int COMMAND_CLITREE  = 5;
-    public static final int COMMAND_CLIOUTPUT= 6;
+    public static final int COMMAND_CLIEXPORT= 6;
     public static final int COMMAND_BOARD    = 7;
     
     private static PConfCommand[] commandList = {
@@ -82,8 +82,8 @@ public class PConfMain {
         new PConfCommand("-yin",    1),
         new PConfCommand("-pyang",  0),
         new PConfCommand("-pdd",    1),
-        new PConfCommand("-clixml", 2),
-        new PConfCommand("-clitree", 2),
+        new PConfCommand("-clixml", 1),
+        new PConfCommand("-clitree", 1),
         new PConfCommand("-cliexport", 1),
         new PConfCommand("-board", 1),
         
@@ -166,30 +166,36 @@ public class PConfMain {
             System.out.println("param idx:" + idx + commandList[idx]);
         }
         
+        
         parseYang2Yin();
         
         parseYinFiles();
         
-        //if (commandl)
-        if (commandList[COMMAND_CLIXML].isParamSet()) {
-            parseCliXml(commandList[COMMAND_CLIXML].paramList.get(0), 
-                        commandList[COMMAND_CLIXML].paramList.get(1));
+        exportConfigNode();
+        
+        /*
+        if (commandList[COMMAND_CLIXML].isParamSet() && commandList[COMMAND_BOARD].isParamSet()) {
+            parseCliXml(commandList[COMMAND_BOARD].paramList.get(0),
+                        commandList[COMMAND_CLIXML].paramList.get(0));
             errProc.checkError();
         }
         
-        if (commandList[COMMAND_CLITREE].isParamSet()) {
-            exportCliTree(commandList[COMMAND_CLITREE].paramList.get(0), 
-                          commandList[COMMAND_CLITREE].paramList.get(1));
+        if (commandList[COMMAND_CLITREE].isParamSet() && commandList[COMMAND_BOARD].isParamSet()) {
+            exportCliTree(commandList[COMMAND_BOARD].paramList.get(0),
+                          commandList[COMMAND_CLITREE].paramList.get(0));
             errProc.checkError();
         }
         
-        exportConfig();
         
-        // TODO dumy for compiler, need change later
-        if (commandList[COMMAND_CLIOUTPUT].paramSet) {
-            exportCliDefine("", "");
+        
+        if (commandList[COMMAND_CLIEXPORT].isParamSet() && commandList[COMMAND_BOARD].isParamSet()) {
+            exportCli(commandList[COMMAND_BOARD].paramList.get(0),
+                      commandList[COMMAND_CLIEXPORT].paramList.get(0));
+            errProc.checkError();
         }
         
+        errProc.checkError();
+        */
     }
 
 
@@ -246,7 +252,7 @@ public class PConfMain {
         errProc.checkError();        
     }
 
-    private static void exportConfig() {
+    private static void exportConfigNode() {
         String pddFile = commandList[COMMAND_PDD].paramList.get(0);
         if (pddFile.length() != 0) {
             System.out.print("now export PDD document ...");
@@ -295,52 +301,38 @@ public class PConfMain {
     }
     
     
-    private static boolean exportCliDefine(String boardType, String outputPath) {
-        /*
-        boolean isScmCmd = false;
-        String  inputFileName;
-        String  outputFileName;
-        
-        System.out.println("process UI for board:" + boardType + ", ui definition path:" + uiDefPath);
-        
-        if (boardType.contains("scm"))
-            isScmCmd = true;
-        */
-        
-        //CliCommandTreeBoard cmdTreeBoard = new CliCommandTreeBoard();
-        
-
+    private static boolean exportCli(String boardType, String outputPath) {
+        /* TODO
         CliKeywordLenCheck cliKeyword = new CliKeywordLenCheck();
         if (!cliKeyword.export(cliMainCmdTree, cliDiagCmdTree))
             return false;
-        
+        */
+        /* TODO
         CliXmlExport cliXml = new CliXmlExport();
         String outputFileName = outputPath+"/ui_" + boardType + "_all.xml";
         cliXml.export(outputFileName, cliMainCmdTree, cliDiagCmdTree);
+        */
         
         /* the following is check the UI privilege */
-        String defPrivilegeRuleFile = "";
+        StringBuffer privilegeCheckResult = new StringBuffer();
+        String defPrivilegeRuleFile = "rules/cli_privilege_rules.xml";
+ 
         ClikPrivilegeCheck cliCheck = new ClikPrivilegeCheck();
         cliCheck.setBordType(boardType);
         cliCheck.setRuleFileName(defPrivilegeRuleFile);
-        
-        /* check the privilege error and print during compiler */
-        StringBuffer privilegeCheckResult = new StringBuffer();
         privilegeCheckResult.append(cliCheck.export(cliMainCmdTree));
         if (privilegeCheckResult.length() > 0)
         {
             privilegeCheckResult.insert(0, cliCheck.getTitle());
-            System.out.println("The privilege of following UIs is not follow expected:\n");
-            System.out.println(privilegeCheckResult);
-            System.out.println("you can do following actions:");
-            System.out.println("1: change the privilege of UI definition in *.def or *.xml");
-            System.out.println("2: add exception in file <" + defPrivilegeRuleFile + ">\n");
+            errProc.addMessage("The privilege of following UIs is not follow expected:");
+            errProc.addMessage(privilegeCheckResult.toString());
+            errProc.addMessage("you can do following actions:");
+            errProc.addMessage("1: change the privilege of UI definition in *.def or *.xml");
+            errProc.addMessage("2: add exception in file <" + defPrivilegeRuleFile + ">\n");
             return false;
         }
         System.out.println("check main command privilege finished!");
 
-      
-        
         /* the following will export the UI list */
         CliListExport cliUIList = new CliListExport();
         cliUIList.setBordType(boardType);
@@ -360,7 +352,7 @@ public class PConfMain {
         /* the following is get the HTML help */
         CliHtmlHelp htmlHelp = new CliHtmlHelp();
         StringBuffer htmlMsg = htmlHelp.export(cliMainCmdTree, cliDiagCmdTree);
-        outputFileName = outputPath+"/ui_" + boardType + "_help.html";
+        String outputFileName = outputPath+"/ui_" + boardType + "_help.html";
         writeFile(outputFileName, htmlMsg);
         
         return true;
@@ -399,6 +391,7 @@ public class PConfMain {
         String helpMsg = "";
         
         helpMsg += "The following is the help information:\n";
+        helpMsg += "Usage example:";
 
         System.out.print(helpMsg);
     }
