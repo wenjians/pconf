@@ -710,7 +710,8 @@ class ConfigType extends ConfigNode {
             for (ConfigDataEnum choice: enumValList) {
                 if (_range.length() != 0)
                     _range.append("\n");
-                _range.append("("+choice.name + ":" + choice.value + ")");
+                //_range.append("("+choice.name + ":" + choice.value + ")");
+                _range.append(choice.name);
             }
         }
         
