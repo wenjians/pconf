@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Thu Jul 03 23:24:25 CST 2014
+onejar.license.required=false
+manifest.classpath=
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=pconf.jar
+manifest.mergeall=true
+manifest.mainclass=PConfMain
+manifest.file=<createnew>
+jarname.isextern=false
+onejar.expand=
+excludes=
+includes=

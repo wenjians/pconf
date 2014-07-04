@@ -127,9 +127,9 @@ class ConfigExportPDD extends ConfigExport{
     final static int COLUMN_UNITS      = 8;
     final static int COLUMN_RANGE      = 9;
     final static int COLUMN_DEFAULT    =10;
-    final static int COLUMN_ADD_REL    =12;
-    final static int COLUMN_MOD_REL    =13;
-    final static int COLUMN_NOTES      =14;
+    final static int COLUMN_ADD_REL    =11;
+    final static int COLUMN_MOD_REL    =12;
+    final static int COLUMN_NOTES      =13;
 
 
     WritableWorkbook wwb;
