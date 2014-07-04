@@ -105,7 +105,7 @@ public class CliExport {
 
 
 
-class ClikPrivilegeCheck extends CliExport {
+class CliPrivilegeCheck extends CliExport {
     
     class PrivilegeRule {
         String matchString;

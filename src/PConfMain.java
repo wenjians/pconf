@@ -321,7 +321,7 @@ public class PConfMain {
         StringBuffer privilegeCheckResult = new StringBuffer();
         String defPrivilegeRuleFile = "rules/cli_privilege_rules.xml";
  
-        ClikPrivilegeCheck cliCheck = new ClikPrivilegeCheck();
+        CliPrivilegeCheck cliCheck = new CliPrivilegeCheck();
         cliCheck.setBordType(boardType);
         cliCheck.setRuleFileName(defPrivilegeRuleFile);
         privilegeCheckResult.append(cliCheck.export(cliMainCmdTree));
