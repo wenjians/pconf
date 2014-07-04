@@ -153,6 +153,7 @@ public class PConfMain {
             }
             argc++;
         }
+        errProc.checkError();
 
         if ((commandList[COMMAND_YANG_DIR].paramList.size() == 0) || 
             (commandList[COMMAND_YIN_DIR].paramList.size() == 0))
@@ -160,7 +161,6 @@ public class PConfMain {
             errProc.addMessage("Both Yang input and output file must specified!\n");
         }
 
-        errProc.checkError(); 
 
         // Print the parameters
         for (int idx=0; idx<commandList.length; idx++) {
