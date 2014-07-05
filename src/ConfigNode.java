@@ -185,7 +185,24 @@ class ConfigNode {
         
         return null;
     }
+    
+    public String getRecursionDefault() {
+        /* if the derived type/node already define the default value, then return */
+        if (getDefaultVal().length() != 0) {
+            return getDefaultVal();
+        }
+        
+        /* if it is already built-in type, then return empty string "" 
+         * since there is NO sub-type defined 
+         */
+        if (dataType.isBuiltin()) {
+            return getDefaultVal();  /* actually it is "", or the above will return */
+        }
+        
+        return dataType.getRecursionDefault();
+    }
 
+    
     public String getStatus() {
 		return status;
 	}
@@ -573,7 +590,7 @@ class ConfigTypedef extends ConfigNode {
     }
 }
 
-
+/* include GW builtin and Yang Builtin */
 class ConfigBuiltin extends ConfigTypedef {
     
 	static boolean inited = false;

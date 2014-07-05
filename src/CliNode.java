@@ -270,14 +270,16 @@ class CliNodeKeyword extends CliNode {
 
 class CliDataTypeRule {
     
-    String dataType;
+    String dataTypeShort;
+    String dataTypeLong;
     String ruleDefault;
     String ruleMinimal;
     String ruleMaximum;
     boolean rangeNeed;
     
-    CliDataTypeRule(String type, boolean range, String ruleDef, String ruleMin, String ruleMax) {
-        dataType    = type;
+    CliDataTypeRule(String typeShort, String typeLong, boolean range, String ruleDef, String ruleMin, String ruleMax) {
+        dataTypeShort = typeShort;
+        dataTypeLong = typeLong;
         ruleDefault = ruleDef;
         ruleMinimal = ruleMin;
         ruleMaximum = ruleMax;
@@ -310,17 +312,17 @@ class CliNodeParameter extends CliNode {
     
     private static CliDataTypeRule[] dataTypeRules = 
                         //type,  range need, default rule, minimal rule, maximum rule
-        {new CliDataTypeRule("",     false, "",        "",         ""      ),      // for default usage
-         new CliDataTypeRule("Int",  true,  "",        ruleUint,   ruleUint),      // unsigned int
-         new CliDataTypeRule("Sint", true,  "",        ruleInt,    ruleInt ),      // signed int
-         new CliDataTypeRule("Ustr", true,  "",        ruleUint,   ruleUint),      // string, don't have space 
-         new CliDataTypeRule("Str",  true,  "",        ruleUint,   ruleUint),      // string, can have space
-         new CliDataTypeRule("Case", false, "",        ruleUint,   ruleUint),      // choice
-         new CliDataTypeRule("Ipa",  false, ruleIpa,   ruleUint,   ruleUint),      // IPv4 IP address, x.y.z.a
-         new CliDataTypeRule("Ip6",  false, "",        ruleZero,   ruleZero),      // IPv6 address
-         new CliDataTypeRule("Ipng", false, "",        "",         ""      ),      // IPv4 or IPv6
-         new CliDataTypeRule("Addr", true,  "",        "",         ""      ),      // memory address, 0xffffffff
-         new CliDataTypeRule("Macad",false, "",        "",         ""      ),      // MAC address
+        {new CliDataTypeRule("",     "",                false, "",        "",         ""      ), // default usage
+         new CliDataTypeRule("Int",  "uint32",          true,  "",        ruleUint,   ruleUint), // unsigned int
+         new CliDataTypeRule("Sint", "int32",           true,  "",        ruleInt,    ruleInt ), // signed int
+         new CliDataTypeRule("Ustr", "string-word",     true,  "",        ruleUint,   ruleUint), // string, NO space 
+         new CliDataTypeRule("Str",  "string",          true,  "",        ruleUint,   ruleUint), // string, have space
+         new CliDataTypeRule("Case", "enumeration",     false, "",        ruleUint,   ruleUint), // choice
+         new CliDataTypeRule("Ipa",  "ipv4-address",    false, ruleIpa,   ruleUint,   ruleUint), // IPv4 address, x.y.z.a
+         new CliDataTypeRule("Ip6",  "ipv6-address",    false, "",        ruleZero,   ruleZero), // IPv6 address
+         new CliDataTypeRule("Ipng", "ip-address",      false, "",        "",         ""      ), // IPv4 or IPv6
+         new CliDataTypeRule("Addr", "memory-address",  true,  "",        "",         ""      ), // memory address, 0xffffffff
+         new CliDataTypeRule("Macad","mac-address",     false, "",        "",         ""      ), // MAC address
         };
     
     private boolean required;   // is the parameter mandatory or optional
@@ -406,7 +408,9 @@ class CliNodeParameter extends CliNode {
     
     public boolean setDataType(String aType)    {
         for (CliDataTypeRule rule: dataTypeRules) {
-            if (rule.dataType.contentEquals(aType)) {
+            if ((rule.dataTypeShort.contentEquals(aType)) ||
+                (rule.dataTypeLong.contentEquals(aType)))   {
+                
                 dataTypeRule = rule;
                 dataType     = aType;
                 
@@ -531,40 +535,15 @@ class CliNodeParameter extends CliNode {
         if (!configNode.isLeaf() && !configNode.isLeafList()) {
             return false;
         }
+
         ConfigType dataType = configNode.getGwBuiltinType();
-        
-        // get the data type
         String yangTypeName = dataType.getName();
-        String cliTypeName;
-        if (yangTypeName.contentEquals("uint32")) {
-            cliTypeName = "Int";
-        } else if (yangTypeName.contentEquals("int32")) {
-            cliTypeName = "Sint";
-        } else if (yangTypeName.contentEquals("string-word")) {
-            cliTypeName = "Ustr";
-        } else if (yangTypeName.contentEquals("string")) {
-            cliTypeName = "Str";
-        } else if (yangTypeName.contentEquals("enumeration")) {
-            cliTypeName = "Case";
-        } else if (yangTypeName.contentEquals("ip-address")) {
-            cliTypeName = "Ipng";
-        } else if (yangTypeName.contentEquals("ipv6-address")) {
-            cliTypeName = "Ip6";
-        } else if (yangTypeName.contentEquals("ipv4-address")) {
-            cliTypeName = "Ipa";
-        } else if (yangTypeName.contentEquals("memory-address")) {
-            cliTypeName = "Addr";
-        } else if (yangTypeName.contentEquals("mac-address")) {
-            cliTypeName = "Macad";
-        } else {
-            cliTypeName = "";
-        }
-        if (!setDataType(cliTypeName)) {
+        if (!setDataType(yangTypeName)) {
             errProc.addMessage("Error: unsupportted data type defined: <" + dataType 
                     + "> in reference parameter <" + yangTypeName + ">");
             return false;
         }
-        
+
         // get the unit
         setUnit(dataType.getUnits());
 

@@ -19,3 +19,4 @@ parameters/yin/ietf-inet-types.xml
 *.c
 *.html
 *.csv
+*.xlsx
