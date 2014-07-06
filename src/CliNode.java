@@ -42,6 +42,7 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import util.DataRange;
 
 public class CliNode {
     enum NodeType {INVALID, KEYWORD, PARAMETER, FUNCTION}
@@ -573,6 +574,7 @@ class CliNodeParameter extends CliNode {
             return false;
         }
 
+        //DataRange dataRange = new DataRange()
         
         String min, max;
         String[] range_list = null;

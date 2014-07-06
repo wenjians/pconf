@@ -202,6 +202,11 @@ class ConfigNode {
         return dataType.getRecursionDefault();
     }
 
+    public String getRecursionRange() {
+        
+        
+        return null;
+    }
     
     public String getStatus() {
 		return status;
