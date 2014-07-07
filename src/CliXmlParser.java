@@ -1,10 +1,8 @@
 
 import java.io.*;
 
+
 import javax.xml.parsers.*;
-//import javax.xml.transform.*;
-//import javax.xml.transform.dom.DOMSource;
-//import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.*;
 import org.xml.sax.*; 
@@ -188,9 +186,12 @@ public class CliXmlParser
                         + ", it must be a leaf or a leaf-list");
                 return;
             }
-            cliNodeParameter.referName = paramName;
-            cliNodeParameter.copyFromConfigNode(configNode);
+            
             cliCommand.addNode(cliNodeParameter);
+            cliCommand.setSource(CliCommand.Source.conf);
+            cliNodeParameter.confReferName = paramName;
+            cliNodeParameter.copyFromConfigNode(configNode);
+            
             
             //System.out.println("CliXmlParser.parseCliParameters, configNode: " + configNode);
             //System.out.println("CliXmlParser.parseCliParameters, CliNodeParameter: " + cliNodeParameter);

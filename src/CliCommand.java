@@ -3,8 +3,8 @@ import java.util.*;
 
 public class CliCommand
 {
-    // define the CLI command is comming from *.def or *.xml;
-    public enum Source  { def, xml      }
+    // define the CLI command is comming from *.def or *.xml or configuration module;
+    public enum Source  { def, xml, conf }
     public enum CliMode { main, diag    }
     
     public static final int CLI_COMMAND_PRIVILEGE_INVALID   = 0;
@@ -68,7 +68,9 @@ public class CliCommand
     
     public void    setSource(Source source)     { cliSource = source;       }
     public Source  getSource()                  { return cliSource;         }
+    public boolean isDefCommand()               { return (cliSource == Source.def); }
     public boolean isXMLCommand()               { return (cliSource == Source.xml); }
+    public boolean isConfCommand()               { return (cliSource == Source.conf); }
 
     public CliMode getCliCmdMode()              { return cliMode;           }
     public void setCliCmdMode(CliMode mode)     { cliMode = mode;           }
@@ -246,7 +248,8 @@ public class CliCommand
                 if (optParamStarted && param.getRequired() && isXMLCommand())
                     errMsg.append("mandatory parameter MUST before optional parameter");
                 
-                if ((getSource() == Source.xml) && (helps.size()==0))
+                if (((getSource() == Source.xml) || (getSource() == Source.conf))
+                        && (helps.size()==0))
                     errMsg.append("Error: help of parameter " + param.getSyntaxKeyword() + "is not defined!");
                     
                 
@@ -258,7 +261,7 @@ public class CliCommand
         }
         
         if (errMsg.length() != 0) {
-            errMsg.insert(0, "CLI command error found in keyword: <" + fullKeywords + ">");
+            errMsg.insert(0, "CLI command error found in keyword: <" + fullKeywords + ">\n");
             errorMsg.addMessage(errMsg.toString());
         }
 

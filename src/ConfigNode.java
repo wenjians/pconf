@@ -101,6 +101,7 @@ class ConfigNode {
         minElements = "";
         orderedBy = "";
         mandatory = "false";
+        units = "";
         
         gw_scope        = Scope.INVALID;
         gw_add_rel  	= "";
@@ -174,13 +175,16 @@ class ConfigNode {
     
     /* here only assume that only two level is derived type definition */
     public ConfigType getGwBuiltinType() {
-        if (dataType.isBuiltin()) {
+        //System.out.println(dataType.type.toString() + ", type name=" + dataType.getName());
+        
+        if (ConfigTypeBuiltin.isGwBuiltin(dataType.getName())) {
             return dataType;
         }
         
-        ConfigTypedef type = dataType.typeDefinition;
-        if (type.dataType.isBuiltin()) {
-            return type.dataType;
+        if (dataType.typeDefinition == null) {
+            System.out.println("dataType.typeDefinition is null");
+        } else {
+            return dataType.typeDefinition.getGwBuiltinType();
         }
         
         return null;
@@ -191,22 +195,22 @@ class ConfigNode {
         if (getDefaultVal().length() != 0) {
             return getDefaultVal();
         }
-        
-        /* if it is already built-in type, then return empty string "" 
-         * since there is NO sub-type defined 
-         */
-        if (dataType.isBuiltin()) {
-            return getDefaultVal();  /* actually it is "", or the above will return */
+
+        /* get the default defined in type definition */
+        if ((dataType != null) && (dataType.typeDefinition != null)) {
+            dataType.typeDefinition.getRecursionDefault();
         }
         
-        return dataType.getRecursionDefault();
+        return "";
     }
 
+    /*
     public String getRecursionRange() {
-        
+        if (isNumber)
         
         return null;
     }
+    */
     
     public String getStatus() {
 		return status;
@@ -219,6 +223,19 @@ class ConfigNode {
 	public String getUnits() {
         return units;
     }
+	
+	public String getRecursionUnits() {
+	    //System.out.println("node:" + getName() + ", units=" + getUnits());
+	    if (getUnits().trim().length() != 0) {
+	        return getUnits();
+	    }
+	    
+	    if ((dataType != null) && (dataType.typeDefinition!=null)) {
+	        return dataType.typeDefinition.getRecursionUnits();
+	    }
+	    
+	    return "";
+	}
 
     public void setUnits(String units) {
         this.units = units;
@@ -596,7 +613,7 @@ class ConfigTypedef extends ConfigNode {
 }
 
 /* include GW builtin and Yang Builtin */
-class ConfigBuiltin extends ConfigTypedef {
+class ConfigTypeBuiltin extends ConfigTypedef {
     
 	static boolean inited = false;
 	
@@ -619,6 +636,9 @@ class ConfigBuiltin extends ConfigTypedef {
         gwBuiltin.add("ip-address");
         gwBuiltin.add("ipv6-address");
         gwBuiltin.add("ipv4-address");
+        gwBuiltin.add("string-word");
+        gwBuiltin.add("mac-address");
+        gwBuiltin.add("mem-address");
         
         inited = true;
     }
@@ -642,7 +662,7 @@ class ConfigBuiltin extends ConfigTypedef {
         return false;
     }
     
-    ConfigBuiltin(String _name) {
+    ConfigTypeBuiltin(String _name) {
     	super();
     	
     	assert (isGwBuiltin(name));
@@ -714,15 +734,15 @@ class ConfigType extends ConfigNode {
     }
 
     boolean isEnum() {
-        return getName().contentEquals("enumeration");
+        return getGwBuiltinName().contentEquals("enumeration");
     }
     
     boolean isString() {
-        return getName().contentEquals("string") || getName().contentEquals("string-word");
+        return getGwBuiltinName().contentEquals("string") || getName().contentEquals("string-word");
     }
     
     boolean isNumber() {
-        return getName().contentEquals("uint32") ||getName().contentEquals("int32");
+        return getGwBuiltinName().contentEquals("uint32") ||getName().contentEquals("int32");
     }
 
     String getRange() {
@@ -753,11 +773,14 @@ class ConfigType extends ConfigNode {
             }
         }
         
-        else if (range.length() != 0){
+        else if (isNumber()){
+            if (_range.length() != 0)
+                _range.append("\n");
+            
             _range.append(range);
         }
         
-        else if (!ConfigBuiltin.isGwBuiltin(getName())) {
+        else if (!ConfigTypeBuiltin.isGwBuiltin(getName())) {
             if (typeDefinition != null) {
                 return typeDefinition.dataType.getRange();
             }
@@ -766,10 +789,33 @@ class ConfigType extends ConfigNode {
         return _range.toString();
     }
 
+    /* get the range of CLI, which only apply for number and string,
+     * and ONLY have the following range defined
+     *      string: length
+     *      number: range
+     */
+    String getCliRange() {
+       
+        if (isString() && !length.trim().isEmpty()) {
+            return length;
+        }
+        
+        else if (isNumber() && !range.trim().isEmpty()){
+            return range;
+        }
+        
+        else if (!ConfigTypeBuiltin.isGwBuiltin(getName())) {
+            if (typeDefinition != null) {
+                return typeDefinition.dataType.getRange();
+            }
+        }
+        
+        return "";
+    }
     
     /* go through the definition, till it is GW bultin type definition */
     String getGwBuiltinName() {
-        if (ConfigBuiltin.isGwBuiltin(getName())) {
+        if (ConfigTypeBuiltin.isGwBuiltin(getName())) {
             return getName();
         }
         
@@ -810,7 +856,7 @@ class ConfigType extends ConfigNode {
         else if (keywords.length == 1) {
             setName(keywords[0]);
             
-            if (ConfigBuiltin.isYangBuiltin(getName())) {
+            if (ConfigTypeBuiltin.isYangBuiltin(getName())) {
                 defModule = "";
             }
             else {

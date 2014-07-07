@@ -177,7 +177,7 @@ public class PConfMain {
         
         exportConfigNode();
         
-        /*
+        
         if (commandList[COMMAND_CLIXML].isParamSet() && commandList[COMMAND_BOARD].isParamSet()) {
             parseCliXml(commandList[COMMAND_BOARD].paramList.get(0),
                         commandList[COMMAND_CLIXML].paramList.get(0));
@@ -199,7 +199,7 @@ public class PConfMain {
         }
         
         errProc.checkError();
-        */
+        
     }
 
 
@@ -243,11 +243,34 @@ public class PConfMain {
         System.out.println("parseYinFiles yin path:" + yinPath);
 
         /* add the built-in type to Configure Tree */
-        ConfigBuiltin.Init();
-        for (String type: ConfigBuiltin.getYangBuiltinTypes()) {
-            configTree.addTypedef("", type, new ConfigBuiltin(type));
+        ConfigTypeBuiltin.Init();
+        for (String type: ConfigTypeBuiltin.getYangBuiltinTypes()) {
+            configTree.addTypedef("", type, new ConfigTypeBuiltin(type));
         }
-
+        
+        /*
+        System.out.println("isYangBuiltin(enumeration)=" + ConfigBuiltin.isYangBuiltin("enumeration"));
+        System.out.println("isYangBuiltin(union)=" + ConfigBuiltin.isYangBuiltin("union"));
+        System.out.println("isYangBuiltin(string)=" + ConfigBuiltin.isYangBuiltin("string"));
+        System.out.println("isYangBuiltin(int32)=" + ConfigBuiltin.isYangBuiltin("int32"));
+        System.out.println("isYangBuiltin(uint32)=" + ConfigBuiltin.isYangBuiltin("uint32"));
+        System.out.println("isYangBuiltin(ip-address)=" + ConfigBuiltin.isYangBuiltin("ip-address"));
+        System.out.println("isYangBuiltin(mem-address)=" + ConfigBuiltin.isYangBuiltin("mem-address"));
+        
+        System.out.println("isGwBuiltin(enumeration)=" + ConfigBuiltin.isGwBuiltin("enumeration"));
+        System.out.println("isGwBuiltin(union)=" + ConfigBuiltin.isGwBuiltin("union"));
+        System.out.println("isGwBuiltin(string)=" + ConfigBuiltin.isGwBuiltin("string"));
+        System.out.println("isGwBuiltin(int32)=" + ConfigBuiltin.isGwBuiltin("int32"));
+        System.out.println("isGwBuiltin(uint32)=" + ConfigBuiltin.isGwBuiltin("uint32"));
+        System.out.println("isGwBuiltin(ip-address)=" + ConfigBuiltin.isGwBuiltin("ip-address"));
+        System.out.println("isGwBuiltin(ipv6-address)=" + ConfigBuiltin.isGwBuiltin("ipv6-address"));
+        System.out.println("isGwBuiltin(ipv4-address)=" + ConfigBuiltin.isGwBuiltin("ipv4-address"));
+        System.out.println("isGwBuiltin(ipv5-address)=" + ConfigBuiltin.isGwBuiltin("ipv5-address"));
+        System.out.println("isGwBuiltin(mac-address)=" + ConfigBuiltin.isGwBuiltin("mac-address"));
+        System.out.println("isGwBuiltin(string-word)=" + ConfigBuiltin.isGwBuiltin("string-word"));
+        System.out.println("isGwBuiltin(mem-address)=" + ConfigBuiltin.isGwBuiltin("mem-address"));
+        */
+        
         yinParser.setConfigTree(configTree);
         yinParser.setYinFileDirectory(yinPath);
         yinParser.setYangFileTree(yangTree);        

@@ -296,8 +296,9 @@ public class CliCommandTree {
                         if (curEntry.isFunctionNode())
                         {
                             CliCommand cliCommand = ((CliNodeFunction)curEntry).getCliCommand();
-                            if (!cliCommand.isXMLCommand())
+                            if (cliCommand.isDefCommand())
                                 continue;
+                            
                             String helpMsg = cliCommand.getRuntimeHelpMsg(true).replace("\"", "\\\"");
                             String[] lines = helpMsg.split("\n+");
                             out.println("char *help" + curEntry.getSyntaxKeyword() + "= \"\\n\\");

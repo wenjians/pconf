@@ -46,7 +46,7 @@ public class ConfigTree {
     void addTypedef(String moduleName, String typeName, ConfigTypedef typedef) {
         String key = typeName;
         
-        if (!ConfigBuiltin.isYangBuiltin(typeName))
+        if (!ConfigTypeBuiltin.isYangBuiltin(typeName))
             key = moduleName + ":" + typeName;
         
         typeDefs.put(key, typedef);

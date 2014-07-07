@@ -341,8 +341,10 @@ class CliNodeParameter extends CliNode {
     
     private List<String> helps;
     
-    String referName;
     CliCommand cliCommand;
+    
+    String confReferName;
+    ConfigNode confReferNode;
     
     CliNodeParameter()
     {
@@ -353,7 +355,8 @@ class CliNodeParameter extends CliNode {
         value_min = "";
         value_max = "";
         value_unit= "";
-        referName = "";
+        confReferName = "";
+        confReferNode = null;
     
         rangeSet    = false;
         requiredSet = false;
@@ -413,7 +416,7 @@ class CliNodeParameter extends CliNode {
                 (rule.dataTypeLong.contentEquals(aType)))   {
                 
                 dataTypeRule = rule;
-                dataType     = aType;
+                dataType     = rule.dataTypeShort;
                 
                 if (!dataTypeRule.rangeNeed) {
                     value_min = "0";
@@ -459,7 +462,10 @@ class CliNodeParameter extends CliNode {
     public String getDefValue()     { return value_def;     }
     
     public boolean setDefValue(String def) {
+
         def = removeStringBracket(def.trim()).trim();
+        if (def.length() == 0)
+            return true;
         
         if (dataTypeRule.matches(def, dataTypeRule.ruleDefault)){
             value_def = def;
@@ -488,6 +494,7 @@ class CliNodeParameter extends CliNode {
     }
     
     public boolean setRange(String aRange) {
+        //System.out.println("\nsetRange:" + aRange);
         String[] tokens = aRange.split(",");
         
         if (tokens.length != 2) {
@@ -537,6 +544,8 @@ class CliNodeParameter extends CliNode {
             return false;
         }
 
+        confReferNode = configNode;
+        
         ConfigType dataType = configNode.getGwBuiltinType();
         String yangTypeName = dataType.getName();
         if (!setDataType(yangTypeName)) {
@@ -546,7 +555,8 @@ class CliNodeParameter extends CliNode {
         }
 
         // get the unit
-        setUnit(dataType.getUnits());
+        //System.out.println("units = "+configNode.getRecursionUnits());
+        setUnit(configNode.getRecursionUnits());
 
         // get the keyword from CliNode
         String localKey="";
@@ -567,48 +577,40 @@ class CliNodeParameter extends CliNode {
         
         setSyntaxKeyword(localKey);
 
-        
-        if (!setDefValue(dataType.getDefaultVal())) {
+        if (!setDefValue(configNode.getRecursionDefault())) {
             errProc.addMessage("Error: unsupportted default format in reference parameter <" 
                         + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
             return false;
         }
 
-        //DataRange dataRange = new DataRange()
-        
-        String min, max;
+        /* set the minimum and maximum value from ConfigNode */
+        String min="0";
+        String max="0";
         String[] range_list = null;
         
-        if (dataType.isNumber()) {
+        if (dataType.isNumber() || dataType.isString()) {
             // split with "|" or ".." with regular express
-            range_list = dataType.range.split("(\\|)|(\\.\\.)");
-        }
-        else if (dataType.isString()) {
-            range_list = dataType.length.split("(\\|)|(\\.\\.)");
-        }
-        else {
-            // others no range need
+        	//System.out.println("nodename=" + configNode.getName() + "range=" + dataType.getCliRange());
+            range_list = dataType.getCliRange().split("(\\|)|(\\.\\.)");
+            
+            if ((range_list != null) && (range_list.length >= 1)) {
+                if (range_list.length == 1) {
+                    min = range_list[0].trim();
+                    max = range_list[0].trim();
+                }
+                else {
+                    min = range_list[0].trim();
+                    max = range_list[range_list.length-1].trim();
+                }
+                
+                if (!setRange(min + ", " + max)) {
+                    errProc.addMessage("Error: unsupportted range format in reference parameter <" 
+                            + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
+                    return false;
+                }
+            }
         }
         
-        if ((range_list== null) || (range_list.length == 0)) {
-            min = "0";
-            max = "0";
-        }
-        else if (range_list.length == 1) {
-            min = range_list[0];
-            max = range_list[0];
-        }
-        else {
-            min = range_list[0];
-            max = range_list[range_list.length-1];
-        }
-
-
-        if (!setRange(min + ", " + max)) {
-            errProc.addMessage("Error: unsupportted range format in reference parameter <" 
-                    + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
-            return false;
-        }
 
         addHelp(configNode.getDescription());
         
