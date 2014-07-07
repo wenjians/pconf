@@ -1,3 +1,4 @@
+package cli;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,16 +14,6 @@ import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import org.xml.sax.*; 
 
-import java.io.*;
-import java.util.*;
-
-import javax.xml.parsers.*;
-
-import org.w3c.dom.*;
-import org.xml.sax.*; 
-
-import java.io.*;
-import java.util.*;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -42,7 +33,9 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import conf.ConfigNode;
 import util.DataRange;
+import util.PConfError;
 
 public class CliNode {
     enum NodeType {INVALID, KEYWORD, PARAMETER, FUNCTION}
@@ -546,8 +539,7 @@ class CliNodeParameter extends CliNode {
 
         confReferNode = configNode;
         
-        ConfigType dataType = configNode.getGwBuiltinType();
-        String yangTypeName = dataType.getName();
+        String yangTypeName = configNode.getBuiltinName();
         if (!setDataType(yangTypeName)) {
             errProc.addMessage("Error: unsupportted data type defined: <" + dataType 
                     + "> in reference parameter <" + yangTypeName + ">");
@@ -559,23 +551,7 @@ class CliNodeParameter extends CliNode {
         setUnit(configNode.getRecursionUnits());
 
         // get the keyword from CliNode
-        String localKey="";
-        if (configNode.dataType.isEnum()) {
-            for (ConfigDataEnum enumVal: configNode.dataType.enumValList) {
-                if (localKey.length()!=0) {
-                    localKey += "|";
-                }
-                localKey += enumVal.name;
-            }
-            
-            localKey = "{" + localKey + "}";
-        } else if (getRequired()) {
-            localKey = "<" + configNode.getName() + ">";
-        } else {
-            localKey = "[" + configNode.getName() + "]";
-        }
-        
-        setSyntaxKeyword(localKey);
+        setSyntaxKeyword(configNode.getCliName(getRequired()));
 
         if (!setDefValue(configNode.getRecursionDefault())) {
             errProc.addMessage("Error: unsupportted default format in reference parameter <" 
@@ -584,33 +560,15 @@ class CliNodeParameter extends CliNode {
         }
 
         /* set the minimum and maximum value from ConfigNode */
-        String min="0";
-        String max="0";
-        String[] range_list = null;
-        
-        if (dataType.isNumber() || dataType.isString()) {
-            // split with "|" or ".." with regular express
-        	//System.out.println("nodename=" + configNode.getName() + "range=" + dataType.getCliRange());
-            range_list = dataType.getCliRange().split("(\\|)|(\\.\\.)");
-            
-            if ((range_list != null) && (range_list.length >= 1)) {
-                if (range_list.length == 1) {
-                    min = range_list[0].trim();
-                    max = range_list[0].trim();
-                }
-                else {
-                    min = range_list[0].trim();
-                    max = range_list[range_list.length-1].trim();
-                }
-                
-                if (!setRange(min + ", " + max)) {
-                    errProc.addMessage("Error: unsupportted range format in reference parameter <" 
-                            + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
-                    return false;
-                }
+        String min = configNode.getRangeMin();
+        String max = configNode.getRangeMax();
+        if (!(min.contentEquals("0") && max.contentEquals("0"))) {
+            if (!setRange(min + ", " + max)) {
+                errProc.addMessage("Error: unsupportted range format in reference parameter <" 
+                        + yangTypeName + "> in CLI command :" + cliCommand.getKeywords());
+                return false;
             }
         }
-        
 
         addHelp(configNode.getDescription());
         

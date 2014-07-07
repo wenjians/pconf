@@ -1,3 +1,4 @@
+package util;
 
 
 
@@ -16,13 +17,6 @@ public final class PConfError {
         errMsg.append("\n");
     }
     
-    /*
-    public void exit(int errCode) {
-        System.err.print(errMsg);
-        System.exit (-1);
-    }
-    */
-    
     public void checkError() {
         if (hasErrorMsg()) {
             System.err.print(errMsg);
@@ -31,7 +25,7 @@ public final class PConfError {
         }
     }
     
-    boolean hasErrorMsg() {
+    public boolean hasErrorMsg() {
         return (errMsg.length() > 0);
     }
     

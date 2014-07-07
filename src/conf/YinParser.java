@@ -1,3 +1,4 @@
+package conf;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -9,6 +10,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import org.w3c.dom.*;
 
+import util.PConfError;
+
 
 
 public final class YinParser {
@@ -16,13 +19,13 @@ public final class YinParser {
     public static final int SUB_ELE_ATTR = 0;
     public static final int SUB_ELE_CTXT = 1;
     
-    String yinFileDirectory;
-    YangFileTree yangFileTree;
-    ConfigTree configTree;
-    PConfError errProc;
+    private String yinFileDirectory;
+    private YangFileTree yangFileTree;
+    private ConfigTree configTree;
+    static private PConfError errProc;
     
     
-    YinParser() {
+    public YinParser() {
         yinFileDirectory = null;
         yangFileTree     = null;
         configTree       = null;
@@ -30,12 +33,21 @@ public final class YinParser {
         errProc = PConfError.getInstance();
     }
 
-    void setConfigTree(ConfigTree _configTree)  { configTree = _configTree; }
+    public void setConfigTree(ConfigTree _configTree)  { 
+        configTree = _configTree; 
+    }
     
-    void setYinFileDirectory(String yinDir) { yinFileDirectory = yinDir; }
-    void setYangFileTree(YangFileTree _yangTree) { yangFileTree = _yangTree; }
+    public void setYinFileDirectory(String yinDir) { 
+        yinFileDirectory = yinDir; 
+    }
     
-    String getYinFileName(YangFile yangFile)  {return yinFileDirectory+"/"+yangFile.getYinFileName() ; }
+    public void setYangFileTree(YangFileTree _yangTree) { 
+        yangFileTree = _yangTree; 
+    }
+    
+    String getYinFileName(YangFile yangFile)  {
+        return yinFileDirectory+"/"+yangFile.getYinFileName() ; 
+    }
 
     public boolean parseYangFileTree(){
         
@@ -73,7 +85,7 @@ public final class YinParser {
     }
 
 
-    public boolean parseOneYinFile(ConfigModule configMod, YangFile yangFile) {
+    private boolean parseOneYinFile(ConfigModule configMod, YangFile yangFile) {
         boolean result = true;
         
         String xmlFileName = getYinFileName(yangFile);

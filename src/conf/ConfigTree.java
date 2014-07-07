@@ -1,3 +1,4 @@
+package conf;
 
 
 
@@ -22,7 +23,7 @@ public class ConfigTree {
     Hashtable<String, ConfigNode> configTable;
     
     
-    ConfigTree() {
+    public ConfigTree() {
         moduleList = new ArrayList<ConfigModule> ();
         
         typeDefs = new HashMap<String , ConfigTypedef> ();
@@ -49,7 +50,7 @@ public class ConfigTree {
     }
     
     
-    ConfigNode findConfig(String configPathName) {
+    public ConfigNode findConfig(String configPathName) {
         return configTable.get(configPathName);
     }
     
@@ -62,7 +63,7 @@ public class ConfigTree {
     }
     
     
-    void addAllBuiltinTypedef() {
+    public void addAllBuiltinTypedef() {
         /* the following is the Yang builtin types */
         addTypedef("", "enumeration", new ConfigTypeBuiltin("", "enumeration"));
         addTypedef("", "union", new ConfigTypeBuiltin("", "union"));

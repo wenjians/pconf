@@ -1,3 +1,4 @@
+package conf;
 
 
 
@@ -16,26 +17,26 @@ import javax.xml.parsers.*;
  */
 public class YangParser {
 
-    String yangFilePath;
-    String yinFilePath;
+    private String yangFilePath;
+    private String yinFilePath;
     
-    YangFileTree yangFileTree;
+    private YangFileTree yangFileTree;
     
-    boolean bYang2Yin;
+    private boolean bYang2Yin;
     
     /* it is file of gw-yang-list.xml, which list all the yang files */
-    String yangXMLFile = "gw-yang-list.xml";
+    private String yangXMLFile = "gw-yang-list.xml";
     
     
-    YangParser() {
+    public YangParser() {
         yangFileTree = null;
         bYang2Yin    = false;
     }
     
-    void enabletYang2Yin()      {bYang2Yin = true;}
+    public void enabletYang2Yin()      {bYang2Yin = true;}
     
     
-    void setYangFileTree(YangFileTree yangTree) { yangFileTree = yangTree; }
+    public void setYangFileTree(YangFileTree yangTree) { yangFileTree = yangTree; }
 
     boolean executeShell(String shellCommand) {
         String lineStr;

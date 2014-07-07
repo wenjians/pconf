@@ -1,3 +1,6 @@
+package conf;
+
+//import YangFileModule;
 
 import java.util.*;
 
@@ -171,7 +174,7 @@ class YangFileModule extends YangFile {
     
     String configModuleName;  /* config module name used in config.xml */
     
-    YangFileModule () {
+    public YangFileModule () {
         moduleGroup    = ModuleGroup.internal;
         directory      = "";
         //moduleFile     = new YangFile();
@@ -264,6 +267,20 @@ public final class YangFileTree {
         }
         
         return true;
+    }
+    
+    
+    public void addDefaultYangFile() {
+        /* add two default extension to yang File Tree */
+        YangFileModule extCOM = new YangFileModule();
+        extCOM.setModuleGroup(YangFileModule.ModuleGroup.extension);
+        extCOM.setYangFileName("ALUYangExtensions.yang");
+        addYangModule(extCOM);
+        
+        YangFileModule fileMGW = new YangFileModule();
+        fileMGW.setModuleGroup(YangFileModule.ModuleGroup.extension);
+        fileMGW.setYangFileName("MGWYangExtensions.yang");
+        addYangModule(fileMGW);        
     }
     
     // TODO 

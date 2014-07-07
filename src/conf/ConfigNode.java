@@ -1,7 +1,10 @@
+package conf;
 
 
 
 import java.util.*;
+
+import util.PConfError;
 
 
 /**
@@ -27,7 +30,7 @@ class ConfigCondition {
     }
 }
 
-class ConfigNode {
+public class ConfigNode {
 
 	static enum NodeType { 
 		INVALID, MODULE, CONTAINER, LEAF, LEAF_LIST, LIST, 
@@ -123,13 +126,13 @@ class ConfigNode {
     
     //invalid, module, container, leaf, leaf_list, list, data_type, type_def
     
-    boolean isConfigModule()    { return type == NodeType.MODULE;       }
-    boolean isContainer()       { return type == NodeType.CONTAINER;    }
-    boolean isLeaf()            { return type == NodeType.LEAF;         }
-    boolean isLeafList()        { return type == NodeType.LEAF_LIST;    }
-    boolean isDataType()        { return type == NodeType.DATA_TYPE;    }
-    boolean isTypeDef()         { return type == NodeType.TYPE_DEF;     }
-    boolean isBuiltin()         {return type == NodeType.TYPEDEF_BUILTIN; } 
+    public boolean isConfigModule()    { return type == NodeType.MODULE;       }
+    public boolean isContainer()       { return type == NodeType.CONTAINER;    }
+    public boolean isLeaf()            { return type == NodeType.LEAF;         }
+    public boolean isLeafList()        { return type == NodeType.LEAF_LIST;    }
+    public boolean isDataType()        { return type == NodeType.DATA_TYPE;    }
+    public boolean isTypeDef()         { return type == NodeType.TYPE_DEF;     }
+    public boolean isBuiltin()         { return type == NodeType.TYPEDEF_BUILTIN; } 
     
     
     
@@ -175,18 +178,27 @@ class ConfigNode {
     
     
     /* here only assume that only two level is derived type definition */
-    public ConfigType getGwBuiltinType() {
+    public String getBuiltinName() {
         /*
         System.out.println(dataType.type.toString() + ", type name=" + dataType.getName() 
-                + ", GW builtin:" + dataType.typeDefinition.isGwBuiltin());
+                + ", GW builtin:" + dataType.typeDefinition.isBuiltin());
         System.out.println(dataType.typeDefinition);
+        System.out.println("isBultin:" + isBuiltin());
         */
-        if (dataType.typeDefinition.isBuiltin()) {
-            return dataType;
+        
+        if (isBuiltin()) {
+            return getName().trim();
         }
         
-        return dataType.typeDefinition.getGwBuiltinType();
+        if (dataType.typeDefinition.isBuiltin()) {
+            System.out.println("dataTypeName: <" + dataType.getName().trim() + ">");
+            return dataType.getName().trim();
+        }
+        
+        
+        return dataType.typeDefinition.getBuiltinName();
     }
+    
     
     public String getRecursionDefault() {
         /* if the derived type/node already define the default value, then return */
@@ -202,14 +214,6 @@ class ConfigNode {
         return "";
     }
 
-    /*
-    public String getRecursionRange() {
-        if (isNumber)
-        
-        return null;
-    }
-    */
-    
     public String getStatus() {
 		return status;
 	}
@@ -288,7 +292,7 @@ class ConfigNode {
         this.defaultVal = val;       
     }
 
-    String getDescription()  {  
+    public String getDescription()  {  
         StringBuffer sb = new StringBuffer();
         
         sb.append(description.replace("\n", " "));
@@ -364,13 +368,69 @@ class ConfigNode {
         gw_service_impact = _parent.gw_service_impact;
     }
 
-    void setName(String _name)  { 
+    public void setName(String _name)  { 
         name = _name;             
     }
     
-    String getName() { 
+    public String getName() { 
         return name;              
     }
+    
+    public String getCliName(boolean isRequired) {
+        String cliName="";
+        if (dataType.isEnum()) {
+            for (ConfigDataEnum enumVal: dataType.enumValList) {
+                if (cliName.length()!=0) {
+                    cliName += "|";
+                }
+                cliName += enumVal.name;
+            }
+            
+            cliName = "{" + cliName + "}";
+        } else if (isRequired) {
+            cliName = "<" + getName() + ">";
+        } else {
+            cliName = "[" + getName() + "]";
+        }
+        
+        return cliName.trim();
+    }
+
+    public String getRangeMin() {
+        /* set the minimum and maximum value from ConfigNode */
+        String minValue="0";
+        String[] range_list = null;
+        
+        if (dataType.isNumber() || dataType.isString()) {
+            // split with "|" or ".." with regular express
+            //System.out.println("nodename=" + configNode.getName() + "range=" + dataType.getCliRange());
+            range_list = dataType.getCliRange().split("(\\|)|(\\.\\.)");
+            
+            if ((range_list != null) && (range_list.length >= 1)) {
+                minValue = range_list[0].trim();
+            }
+        }
+        
+        return minValue.trim();
+    }
+    
+    public String getRangeMax() {
+        String maxValue="0";
+        String[] range_list = null;
+        if (dataType.isNumber() || dataType.isString()) {
+            // split with "|" or ".." with regular express
+            //System.out.println("nodename=" + configNode.getName() + "range=" + dataType.getCliRange());
+            range_list = dataType.getCliRange().split("(\\|)|(\\.\\.)");
+            
+            if ((range_list != null) && (range_list.length >= 1)) {
+                maxValue = range_list[range_list.length-1].trim();
+            }
+        }
+        
+        return maxValue;
+    }
+    
+
     
     
     /* this function return the middle name (remove the module name and leaf name
@@ -745,16 +805,42 @@ class ConfigType extends ConfigNode {
         this.typeDefinition = dataType;
     }
 
+    /* go through the definition, till it is GW bultin type definition */
+    /*
+    public String getBuiltinName() {
+        if (typeDefinition.isBuiltin()) {
+            return typeDefinition.getName();
+        }
+        
+        if (typeDefinition.dataType != null) {
+            return typeDefinition.dataType.getBuiltinName();
+        }
+            
+        return getName();
+    }
+    */
+    
     boolean isEnum() {
-        return getGwBuiltinName().contentEquals("enumeration");
+        /*
+        if (typeDefinition == null) {
+            System.out.println("typedef is null");
+        }
+        */
+        
+        //System.out.println("\n\n\nisEnum: Node:" + getName() + ", builtin typeName=" + typeDefinition.getBuiltinName());
+        return typeDefinition.getBuiltinName().contentEquals("enumeration");
     }
     
     boolean isString() {
-        return getGwBuiltinName().contentEquals("string") || getName().contentEquals("string-word");
+        String builtinTypeName = typeDefinition.getBuiltinName().trim();
+        return builtinTypeName.contentEquals("string") || 
+               builtinTypeName.contentEquals("string-word");
     }
     
     boolean isNumber() {
-        return getGwBuiltinName().contentEquals("uint32") ||getName().contentEquals("int32");
+        String builtinTypeName = typeDefinition.getBuiltinName().trim();
+        return builtinTypeName.contentEquals("uint32") ||
+               builtinTypeName.contentEquals("int32");
     }
 
     String getRange() {
@@ -822,17 +908,19 @@ class ConfigType extends ConfigNode {
     }
     
     /* go through the definition, till it is GW bultin type definition */
-    String getGwBuiltinName() {
+    /*
+    String getBuiltinName() {
         if (typeDefinition.isBuiltin()) {
             return typeDefinition.getName();
         }
         
         if (typeDefinition.dataType != null) {
-            return typeDefinition.dataType.getGwBuiltinName();
+            return typeDefinition.dataType.getBuiltinName();
         }
             
         return getName();
     }
+    */
     
     
 

@@ -1,5 +1,8 @@
+package cli;
 
 import java.util.*;
+
+import util.PConfError;
 
 public class CliCommand
 {

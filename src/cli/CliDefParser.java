@@ -1,6 +1,9 @@
+package cli;
 
 
 import java.io.*;
+
+import util.PConfError;
 
 public final class CliDefParser {
     

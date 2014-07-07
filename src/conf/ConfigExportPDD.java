@@ -1,9 +1,7 @@
+package conf;
 
-
-//import java.util.*;
 import java.io.File;
 import java.io.IOException;
-
 
 import jxl.Workbook;
 import jxl.write.Label;
@@ -13,108 +11,7 @@ import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 
-
-public class ConfigExport {
-    
-    ConfigTree configTree;
-    PConfError errProc;
-    
-
-    String transferHTML(String str) {
-        str = str.replace("&", "&amp;");
-        str = str.replace("<", "&lt;");
-        str = str.replace(">", "&gt;");
-        str = str.replace("\"", "&quot;");
-        str = str.replace(" ", "&#32;");
-        //str = str.replace(" ", "&nbsp;");
-        //str = str.replace("\n", "<br>");
-        
-        return str;
-    }
-    
-    ConfigExport() {
-        configTree = null;
-        
-        errProc = PConfError.getInstance();
-    }
-    
-    
-    
-    void setConfigTree(ConfigTree _configTree) {
-        configTree = _configTree;
-    }
-    
-    /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportLeaf(ConfigNode configNode) {
-        
-    }
-    
-    /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportLeafList(ConfigNode configNode) {
-        
-    }
-    
-    /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportList(ConfigNode configNode) {
-        
-        
-    }
-    
-    /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportContainer(ConfigNode configNode) {
-        
-    }
-    
-    final void exportOneNode(ConfigNode configNode) {
-        if (configNode.type == ConfigNode.NodeType.LEAF) {
-            exportLeaf(configNode);
-        }
-        
-        else if (configNode.type == ConfigNode.NodeType.LEAF_LIST) {
-            exportLeafList(configNode);
-        }
-        
-        else if (configNode.type == ConfigNode.NodeType.CONTAINER) {
-            exportContainer(configNode);
-            
-            for (ConfigNode node:configNode.children) {
-                exportOneNode(node);
-            }
-        }
-        
-        else if (configNode.type == ConfigNode.NodeType.LIST) {
-            exportList(configNode);
-
-            for (ConfigNode node:configNode.children) {
-                exportOneNode(node);
-            }
-        }
-        
-        else {
-            String errMsg;
-            
-            errMsg = "un-supported type node type (" + configNode.type.toString()
-                   + "%s) when exporting to PDD\n"
-                   + "Name:" + configNode.getName() 
-                   + " in Yang file <" + configNode.getYangFile().getYangFileName() + ">"; 
-            errProc.addMessage(errMsg);
-        }        
-    }
-    
-    protected void walkthrough() 
-    {
-        for (ConfigModule module: configTree.moduleList) {
-            for (ConfigNode configNode: module.getChildren()) {
-                exportOneNode(configNode);
-            }               
-        }
-    }
-}
-
-
-
-
-class ConfigExportPDD extends ConfigExport{
+public class ConfigExportPDD extends ConfigExport{
 
     final static int COLUMN_MODULE     = 0;
     final static int COLUMN_NODE_TYPE  = 1;
@@ -161,7 +58,7 @@ class ConfigExportPDD extends ConfigExport{
 
             curRow++;
             
-            //System.out.println(configNode);
+            System.out.println(configNode);
             
             String moduleName = configNode.getYangModule().configModuleName;
             label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
@@ -186,13 +83,14 @@ class ConfigExportPDD extends ConfigExport{
             label = new Label(COLUMN_DESCP,curRow, configNode.getDescription(), normalFormat);
             sysParamSheet.addCell(label);
             
-            label = new Label(COLUMN_FORMAT,curRow, configNode.dataType.getGwBuiltinName(), normalFormat);
+            label = new Label(COLUMN_FORMAT,curRow, configNode.getBuiltinName(), normalFormat);
             sysParamSheet.addCell(label);
             
             //label = new Label(COLUMN_UNITS,curRow, configNode.dataType.getUnits(), normalFormat);
             label = new Label(COLUMN_UNITS,curRow, configNode.getUnits(), normalFormat);
             sysParamSheet.addCell(label);
             
+            //label = new Label(COLUMN_RANGE,curRow, configNode.dataType.getRange(), normalFormat);
             label = new Label(COLUMN_RANGE,curRow, configNode.dataType.getRange(), normalFormat);
             sysParamSheet.addCell(label);
             
@@ -456,6 +354,3 @@ class ConfigExportPDD extends ConfigExport{
         }   
     } 
 }
-
-
-

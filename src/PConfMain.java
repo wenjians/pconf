@@ -1,6 +1,5 @@
 import java.util.List;
 import java.util.ArrayList;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,6 +8,31 @@ import java.io.PrintWriter;
 //import java.io.*;
 //import cli.*;;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+import util.PConfError;
+import conf.ConfigTree;
+import conf.YangFileTree;
+import conf.YangParser;
+import conf.YinParser;
+import conf.ConfigExportPDD;
+import cli.CliCommandTree;
+import cli.CliDefParser;
+import cli.CliXmlParser;
+import cli.CliPrivilegeCheck;
+import cli.CliListExport;
+import cli.CliHtmlHelp;
 /**
  * 
  */
@@ -90,7 +114,7 @@ public class PConfMain {
     };
     
     static PConfError errProc = PConfError.getInstance();;
-    static YinParser  yinParser  = new YinParser();
+    static YinParser yinParser  = new YinParser();
     static YangParser yangParser  = new YangParser();
     static YangFileTree yangTree = new YangFileTree();
     static ConfigTree configTree = new ConfigTree();
@@ -203,7 +227,7 @@ public class PConfMain {
     }
 
 
-    static void parseYang2Yin() {
+    private static void parseYang2Yin() {
         
         boolean result = true;
         
@@ -211,18 +235,11 @@ public class PConfMain {
             yangParser.enabletYang2Yin();
         }
         
+        yangTree.addDefaultYangFile();
+        
         yangParser.setYangFileTree(yangTree);
         
-        /* add two default extension to yang File Tree */
-        YangFileModule extCOM = new YangFileModule();
-        extCOM.setModuleGroup(YangFileModule.ModuleGroup.extension);
-        extCOM.setYangFileName("ALUYangExtensions.yang");
-        yangTree.addYangModule(extCOM);
         
-        YangFileModule fileMGW = new YangFileModule();
-        fileMGW.setModuleGroup(YangFileModule.ModuleGroup.extension);
-        fileMGW.setYangFileName("MGWYangExtensions.yang");
-        yangTree.addYangModule(fileMGW);
 
         String yangPath = commandList[COMMAND_YANG_DIR].paramList.get(0);
         String yinPath  = commandList[COMMAND_YIN_DIR].paramList.get(0);
@@ -236,7 +253,7 @@ public class PConfMain {
     }
     
     
-    static void parseYinFiles() {
+    private static void parseYinFiles() {
         System.out.println("\nNow parser Yin to Configuration Tree ... ");
 
         String yinPath  = commandList[COMMAND_YIN_DIR].paramList.get(0);
