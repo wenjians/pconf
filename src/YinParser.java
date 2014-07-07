@@ -23,7 +23,6 @@ public final class YinParser {
     
     
     YinParser() {
-        
         yinFileDirectory = null;
         yangFileTree     = null;
         configTree       = null;

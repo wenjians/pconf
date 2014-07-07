@@ -63,20 +63,20 @@ public class ConfigTree {
     
     
     void addAllBuiltinTypedef() {
-        /* Yang built in types */
-        addTypedef("", "enumeration", new ConfigTypedefYang("enumeration"));
-        addTypedef("", "union", new ConfigTypedefYang("union"));
-        addTypedef("", "string", new ConfigTypedefYang("string"));
-        addTypedef("", "int32", new ConfigTypedefYang("int32"));
-        addTypedef("", "uint32", new ConfigTypedefYang("uint32"));
+        /* the following is the Yang builtin types */
+        addTypedef("", "enumeration", new ConfigTypeBuiltin("", "enumeration"));
+        addTypedef("", "union", new ConfigTypeBuiltin("", "union"));
+        addTypedef("", "string", new ConfigTypeBuiltin("", "string"));
+        addTypedef("", "int32", new ConfigTypeBuiltin("", "int32"));
+        addTypedef("", "uint32", new ConfigTypeBuiltin("", "uint32"));
         
-        /* the following is the gw builtin types */
-        addTypedef("MGWYangExtensions", "ip-address", new ConfigTypedefGw("MGWYangExtensions", "ip-address"));
-        addTypedef("MGWYangExtensions", "ipv6-address", new ConfigTypedefGw("MGWYangExtensions", "ipv6-address"));
-        addTypedef("MGWYangExtensions", "ipv4-address", new ConfigTypedefGw("MGWYangExtensions", "ipv4-address"));
-        addTypedef("MGWYangExtensions", "string-word", new ConfigTypedefGw("MGWYangExtensions", "string-word"));
-        addTypedef("MGWYangExtensions", "mac-addres", new ConfigTypedefGw("MGWYangExtensions", "mac-addres"));
-        addTypedef("MGWYangExtensions", "mem-address", new ConfigTypedefGw("MGWYangExtensions", "mem-address"));
+        /* the following is the GW builtin types */
+        addTypedef("MGWYangExtensions", "ip-address", new ConfigTypeBuiltin("MGWYangExtensions", "ip-address"));
+        addTypedef("MGWYangExtensions", "ipv6-address", new ConfigTypeBuiltin("MGWYangExtensions", "ipv6-address"));
+        addTypedef("MGWYangExtensions", "ipv4-address", new ConfigTypeBuiltin("MGWYangExtensions", "ipv4-address"));
+        addTypedef("MGWYangExtensions", "string-word", new ConfigTypeBuiltin("MGWYangExtensions", "string-word"));
+        addTypedef("MGWYangExtensions", "mac-addres", new ConfigTypeBuiltin("MGWYangExtensions", "mac-addres"));
+        addTypedef("MGWYangExtensions", "mem-address", new ConfigTypeBuiltin("MGWYangExtensions", "mem-address"));
     }
     
     ConfigTypedef getTypeDef(ConfigType dataType) {
