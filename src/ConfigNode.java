@@ -31,7 +31,7 @@ class ConfigNode {
 
 	static enum NodeType { 
 		INVALID, MODULE, CONTAINER, LEAF, LEAF_LIST, LIST, 
-		DATA_TYPE, TYPE_DEF, TYPE_BUILTIN, TYPE_GWBUILTIN 	
+		DATA_TYPE, TYPE_DEF, TYPEDEF_GW_BUILTIN, TYPEDEF_YANG_BUILTIN 	
 	}
     
     static enum Scope { INVALID, SYSTEM, CUSTOMER, ELEMENT }
@@ -129,7 +129,13 @@ class ConfigNode {
     boolean isLeafList()        { return type == NodeType.LEAF_LIST;    }
     boolean isDataType()        { return type == NodeType.DATA_TYPE;    }
     boolean isTypeDef()         { return type == NodeType.TYPE_DEF;     }
-    boolean isBuiltin()			{ return type == NodeType.TYPE_BUILTIN;	}
+    boolean isYangBuiltin()     { return type == NodeType.TYPEDEF_YANG_BUILTIN; }
+    
+    /* Yang builtin type is special of GW Builtin */
+    boolean isGwBuiltin()       { 
+        return (type == NodeType.TYPEDEF_GW_BUILTIN) || isYangBuiltin() ; 
+    }
+    
     
     
     boolean isConfigurable() {
@@ -175,19 +181,16 @@ class ConfigNode {
     
     /* here only assume that only two level is derived type definition */
     public ConfigType getGwBuiltinType() {
-        //System.out.println(dataType.type.toString() + ", type name=" + dataType.getName());
-        
-        if (ConfigTypeBuiltin.isGwBuiltin(dataType.getName())) {
+        /*
+        System.out.println(dataType.type.toString() + ", type name=" + dataType.getName() 
+                + ", GW builtin:" + dataType.typeDefinition.isGwBuiltin());
+        System.out.println(dataType.typeDefinition);
+        */
+        if (dataType.typeDefinition.isGwBuiltin()) {
             return dataType;
         }
         
-        if (dataType.typeDefinition == null) {
-            System.out.println("dataType.typeDefinition is null");
-        } else {
-            return dataType.typeDefinition.getGwBuiltinType();
-        }
-        
-        return null;
+        return dataType.typeDefinition.getGwBuiltinType();
     }
     
     public String getRecursionDefault() {
@@ -601,79 +604,90 @@ class ConfigTypedef extends ConfigNode {
         children = null;
     }
     
+    static String getFullTypeName(String yangFile, String typeName) {
+        String fullTypeName = typeName.trim();
+        
+        if ((yangFile != null) && (!yangFile.trim().isEmpty())) {
+            fullTypeName = yangFile.trim() + ":" + fullTypeName;
+        }
+
+        return fullTypeName;
+    }
+    
     
     @Override
     public String toString() {
         return "ConfndTypedef [yangFile=" + yangFile.getYangFileName()
         	 + ", name=" + getName()
-        	 + ", description (len)=" + description.length()
-        	 + ", dataType = " + dataType
-             + "]\n\n";
+        	 //+ ", description (len)=" + description.length()
+        	 //+ ", dataType = " + dataType
+             + "]\n";
     }
 }
 
 /* include GW builtin and Yang Builtin */
-class ConfigTypeBuiltin extends ConfigTypedef {
-    
-	static boolean inited = false;
-	
-	static Set<String> yangBuiltin = new HashSet<String> ();
-    static Set<String> gwBuiltin = new HashSet<String> ();
+class ConfigTypedefGw extends ConfigTypedef {
+    String defYangFileName;
+    /* the formst of string type in set is combined with yang file
+     *  Yang builtin type: typename, e.g. "uint32"
+     *  GW   builtin type: yangFile:typeName, e.g. "MGWExtension:ip-address" 
+     */
+    static Set <String> gwBuiltin = new HashSet<String> ();
 
-    static void Init() {
-        if (inited)
-            return;
-
-        /* Yang built in types */
-        yangBuiltin.add("enumeration");
-        yangBuiltin.add("union");
-        yangBuiltin.add("string");
-        yangBuiltin.add("int32");
-        yangBuiltin.add("uint32");
-        
-        /* gateway built in types */
-        gwBuiltin.addAll(yangBuiltin);
-        gwBuiltin.add("ip-address");
-        gwBuiltin.add("ipv6-address");
-        gwBuiltin.add("ipv4-address");
-        gwBuiltin.add("string-word");
-        gwBuiltin.add("mac-address");
-        gwBuiltin.add("mem-address");
-        
-        inited = true;
-    }
-    
-    static boolean isYangBuiltin(String typeName) {
-        if (yangBuiltin.contains(typeName))
+    static boolean isBuiltin(String yangFile, String typeName) {
+        String fullTypeName = getFullTypeName(yangFile, typeName);
+        if (gwBuiltin.contains(fullTypeName))
             return true;
         
         return false;
     }
     
-    static Set<String> getYangBuiltinTypes() {
-    	return yangBuiltin;
-    }
-    
-    
-    static boolean isGwBuiltin(String typeName) {
-        if (gwBuiltin.contains(typeName))
-            return true;
-        
-        return false;
-    }
-    
-    ConfigTypeBuiltin(String _name) {
+    ConfigTypedefGw(String yangFile, String _name) {
     	super();
     	
-    	assert (isGwBuiltin(name));
-    	
-        type = NodeType.TYPE_BUILTIN;
-        setName(_name);
+        type = NodeType.TYPEDEF_GW_BUILTIN;
+        
+        defYangFileName = yangFile.trim();
+        
+        setName(_name.trim());
+        gwBuiltin.add(getName());
+        //System.out.println("GW builtin added: <" + defYangFileName + ":" + getName() + ">");
+    }
+    
+    
+    @Override
+    public String toString() {
+        return "ConfigTypedefGw [type name=" + getName() + "]";
+    }
+}
+
+
+/* include GW builtin and Yang Builtin */
+class ConfigTypedefYang extends ConfigTypedefGw {
+    
+    static Set<String> yangBuiltin = new HashSet<String> ();
+
+    static boolean isBuiltin(String yangFile, String typeName) {
+        String fullTypeName = getFullTypeName(yangFile, typeName);
+        if (yangBuiltin.contains(fullTypeName))
+            return true;
+        
+        return false;
+    }
+    
+    ConfigTypedefYang(String _name) {
+
+        super("", _name);
+        
+        type = NodeType.TYPEDEF_YANG_BUILTIN;
+        
+        yangBuiltin.add(getName());
+        //System.out.println("Yang builtin added: <" + getName() + ">");
     }
     
     @Override
     public String toString() {
-        return "ConfndBuiltin [builtin type name=" + getName() + "]\n\n";
+        return "ConfigTypedefYang [type name=" + getName() + "]";
     }
     
 }
@@ -780,10 +794,8 @@ class ConfigType extends ConfigNode {
             _range.append(range);
         }
         
-        else if (!ConfigTypeBuiltin.isGwBuiltin(getName())) {
-            if (typeDefinition != null) {
-                return typeDefinition.dataType.getRange();
-            }
+        else  if (typeDefinition.dataType != null){
+            return typeDefinition.dataType.getRange();
         }
         
         return _range.toString();
@@ -804,10 +816,8 @@ class ConfigType extends ConfigNode {
             return range;
         }
         
-        else if (!ConfigTypeBuiltin.isGwBuiltin(getName())) {
-            if (typeDefinition != null) {
-                return typeDefinition.dataType.getRange();
-            }
+        else if (!typeDefinition.isGwBuiltin()) {
+            return typeDefinition.dataType.getRange();
         }
         
         return "";
@@ -815,13 +825,12 @@ class ConfigType extends ConfigNode {
     
     /* go through the definition, till it is GW bultin type definition */
     String getGwBuiltinName() {
-        if (ConfigTypeBuiltin.isGwBuiltin(getName())) {
-            return getName();
+        if (typeDefinition.isGwBuiltin()) {
+            return typeDefinition.getName();
         }
         
-        ConfigTypedef type_def = typeDefinition;
-        if ((type_def != null) && (type_def.dataType != null)) {
-            return type_def.dataType.getGwBuiltinName();
+        if (typeDefinition.dataType != null) {
+            return typeDefinition.dataType.getGwBuiltinName();
         }
             
         return getName();
@@ -856,7 +865,7 @@ class ConfigType extends ConfigNode {
         else if (keywords.length == 1) {
             setName(keywords[0]);
             
-            if (ConfigTypeBuiltin.isYangBuiltin(getName())) {
+            if (ConfigTypedefGw.isBuiltin("", getName())) {
                 defModule = "";
             }
             else {

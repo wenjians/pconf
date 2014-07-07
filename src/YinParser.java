@@ -37,7 +37,6 @@ public final class YinParser {
     void setYangFileTree(YangFileTree _yangTree) { yangFileTree = _yangTree; }
     
     String getYinFileName(YangFile yangFile)  {return yinFileDirectory+"/"+yangFile.getYinFileName() ; }
-    
 
     public boolean parseYangFileTree(){
         
@@ -549,6 +548,9 @@ public final class YinParser {
             else if (keyword.endsWith("gw:notes")) {
                 configNode.setNotes(xmlStmnt.getAttribute("string").trim());
             }
+            
+            if (errProc.hasErrorMsg())
+                return false;
         }
         
         if (errProc.hasErrorMsg())
@@ -578,11 +580,11 @@ public final class YinParser {
         
         ConfigTypedef typedef = configTree.getTypeDef(dataType);
         if (typedef == null) {
-            errProc.addMessage(String.format("type (%s) not defined in Yang file (%s)\n", 
+            errProc.addMessage(String.format("type (%s) not defined in Yang file (%s)", 
                                              fullTypeName, yangFile.getYangFileName()));
             
-            errProc.addMessage("module name: " + dataType.defModule 
-            		         + ", type_name=" + dataType.getName());
+            errProc.addMessage("module name: <" + dataType.defModule 
+            		         + ">, type_name= <" + dataType.getName() + ">");
             
             //System.out.println(configTree.typeDefs);
             //System.out.println(yangFile);
@@ -592,6 +594,8 @@ public final class YinParser {
 
         dataType.setName(typedef.getName());
         dataType.typeDefinition = typedef;
+        
+        //System.out.println("YinParser.parseType: name=" + dataType.getName());
         
         /*
         if (!ConfigBuiltin.isGwBuiltin(typedef.getName())) {

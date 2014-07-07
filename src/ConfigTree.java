@@ -8,7 +8,17 @@ public class ConfigTree {
 
     List<ConfigModule> moduleList;
     
+    /* 
+     * typeDefs include all the type definitions
+     *      key: is the fullYangPath type name, e.g. gw-ip-type:vlan
+     */
     HashMap<String , ConfigTypedef> typeDefs;
+    
+    /*
+     * configTable include all the parameter configuration, which is used to quickly
+     * each each of parameter definition
+     *      Key: is the full path name e.g. /syslog/save-mode
+     */
     Hashtable<String, ConfigNode> configTable;
     
     
@@ -44,22 +54,43 @@ public class ConfigTree {
     }
     
     void addTypedef(String moduleName, String typeName, ConfigTypedef typedef) {
-        String key = typeName;
         
-        if (!ConfigTypeBuiltin.isYangBuiltin(typeName))
-            key = moduleName + ":" + typeName;
+    	String fullTypeName = ConfigTypedef.getFullTypeName(moduleName, typeName);
         
-        typeDefs.put(key, typedef);
+        typeDefs.put(fullTypeName, typedef);
         //System.out.println("type add to configure tree:" + typedef);
     }
     
     
-    ConfigTypedef getTypeDef(ConfigType dataType) {
-        //System.out.println("getTypeDef, fullname=<" + dataType.definedModule + ":" + dataType.typeName + ">");
-        if (dataType.defModule==null || dataType.defModule.length()==0)
-            return typeDefs.get(dataType.getName());
+    void addAllBuiltinTypedef() {
+        /* Yang built in types */
+        addTypedef("", "enumeration", new ConfigTypedefYang("enumeration"));
+        addTypedef("", "union", new ConfigTypedefYang("union"));
+        addTypedef("", "string", new ConfigTypedefYang("string"));
+        addTypedef("", "int32", new ConfigTypedefYang("int32"));
+        addTypedef("", "uint32", new ConfigTypedefYang("uint32"));
         
-        return typeDefs.get(dataType.defModule + ":" + dataType.getName());
+        /* the following is the gw builtin types */
+        addTypedef("MGWYangExtensions", "ip-address", new ConfigTypedefGw("MGWYangExtensions", "ip-address"));
+        addTypedef("MGWYangExtensions", "ipv6-address", new ConfigTypedefGw("MGWYangExtensions", "ipv6-address"));
+        addTypedef("MGWYangExtensions", "ipv4-address", new ConfigTypedefGw("MGWYangExtensions", "ipv4-address"));
+        addTypedef("MGWYangExtensions", "string-word", new ConfigTypedefGw("MGWYangExtensions", "string-word"));
+        addTypedef("MGWYangExtensions", "mac-addres", new ConfigTypedefGw("MGWYangExtensions", "mac-addres"));
+        addTypedef("MGWYangExtensions", "mem-address", new ConfigTypedefGw("MGWYangExtensions", "mem-address"));
+    }
+    
+    ConfigTypedef getTypeDef(ConfigType dataType) {
+        
+    	
+    	/*
+        if (dataType.defModule==null || dataType.defModule.trim().length()==0)
+            return typeDefs.get(dataType.getName());
+       	*/
+        
+        String fullTypeName = ConfigTypedef.getFullTypeName(dataType.defModule, dataType.getName());
+        //System.out.println("getTypeDef, fullname=<" + fullTypeName + ">");
+        
+        return typeDefs.get(fullTypeName);
     }
     
     String toStringTypedef() {

@@ -243,10 +243,7 @@ public class PConfMain {
         System.out.println("parseYinFiles yin path:" + yinPath);
 
         /* add the built-in type to Configure Tree */
-        ConfigTypeBuiltin.Init();
-        for (String type: ConfigTypeBuiltin.getYangBuiltinTypes()) {
-            configTree.addTypedef("", type, new ConfigTypeBuiltin(type));
-        }
+        configTree.addAllBuiltinTypedef();
         
         /*
         System.out.println("isYangBuiltin(enumeration)=" + ConfigBuiltin.isYangBuiltin("enumeration"));
