@@ -1,15 +1,18 @@
 package conf;
 
-import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
-import jxl.Workbook;
-import jxl.write.Label;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+
 
 public class ConfigExportPDD extends ConfigExport{
 
@@ -27,329 +30,220 @@ public class ConfigExportPDD extends ConfigExport{
     final static int COLUMN_ADD_REL    =11;
     final static int COLUMN_MOD_REL    =12;
     final static int COLUMN_NOTES      =13;
-
-
-    WritableWorkbook wwb;
-    WritableSheet    sysParamSheet;
     
-
-    //WritableCellFormat syntaxFormat;
-    WritableCellFormat normalFormat;
-    WritableCellFormat headerFormat;
-
+    FileOutputStream outFile;
+    Workbook workBook;
+    Sheet workSheet;
+    
+    CellStyle csTitle ;
+    CellStyle csGroup ;
+    CellStyle csNormal;
+    CellStyle csKeywd;
+    
+    Font ftTitle;
+    Font ftGroup;
+    Font ftNormal;
+    Font ftKeywd;
+    
+    Row row ;
+    Cell cell;
+    
     int curRow;
             
+    public ConfigExportPDD () {
+        curRow = 0;
+    }
+    
+    private void writeCurRowCell(int column, CellStyle style, String value) {
+        cell = row.createCell(column);
+        cell.setCellStyle(style);
+        cell.setCellValue(value);
+    }
+    
     @Override
     void exportLeaf(ConfigNode configNode) {
-        
-        if (configNode.type != ConfigNode.NodeType.LEAF)
+        if (!configNode.isLeaf())
             return;
         
-        /* only configurable parameter should be export to PDD document */
-        /*
-        if (!configNode.isConfigurable()) {
-            return;
-        }
-        */
-                
-        Label label;
-            
-        try {
-
-            curRow++;
-            
-            System.out.println(configNode);
-            
-            String moduleName = configNode.getYangModule().configModuleName;
-            label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
-            sysParamSheet.addCell(label);
-            
-            //label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
-            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_SCOPE,curRow, configNode.getScopeName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_DESCP,curRow, configNode.getDescription(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_FORMAT,curRow, configNode.getBuiltinName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            //label = new Label(COLUMN_UNITS,curRow, configNode.dataType.getUnits(), normalFormat);
-            label = new Label(COLUMN_UNITS,curRow, configNode.getUnits(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            //label = new Label(COLUMN_RANGE,curRow, configNode.dataType.getRange(), normalFormat);
-            label = new Label(COLUMN_RANGE,curRow, configNode.dataType.getRange(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_DEFAULT,curRow, configNode.getDefaultVal(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_ADD_REL,curRow, configNode.getAddRelease(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_MOD_REL,curRow, configNode.getModRelease(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NOTES,curRow, configNode.getNotes(), normalFormat);
-            sysParamSheet.addCell(label);
-        } catch (WriteException e) {   
-            e.printStackTrace();   
-        }
-
+        curRow++;
+        row = workSheet.createRow(curRow);
+        
+        //System.out.println(configNode.getName());
+        writeCurRowCell(COLUMN_MODULE, csNormal, configNode.getYangModule().configModuleName);
+        writeCurRowCell(COLUMN_NODE_TYPE, csNormal, configNode.type.toString().toLowerCase());
+        writeCurRowCell(COLUMN_HIERARCHY, csNormal, configNode.getMiddleName());
+        writeCurRowCell(COLUMN_NAME, csNormal, configNode.getName());
+        writeCurRowCell(COLUMN_CONF_ABLE, csNormal, configNode.configurable);
+        writeCurRowCell(COLUMN_SCOPE, csNormal, configNode.getScopeName());
+        writeCurRowCell(COLUMN_DESCP, csNormal, configNode.getDescription());
+        writeCurRowCell(COLUMN_FORMAT, csNormal, configNode.getBuiltinName());
+        writeCurRowCell(COLUMN_UNITS, csNormal, configNode.getUnits());
+        writeCurRowCell(COLUMN_RANGE, csNormal, configNode.dataType.getRange());
+        writeCurRowCell(COLUMN_DEFAULT, csNormal, configNode.getDefaultVal());
+        writeCurRowCell(COLUMN_ADD_REL, csNormal, configNode.getAddRelease());
+        writeCurRowCell(COLUMN_MOD_REL, csNormal, configNode.getModRelease());
+        writeCurRowCell(COLUMN_NOTES, csNormal, configNode.getNotes());
     }
 
     
     void exportLeafList(ConfigNode configNode) {
-        
-        if (configNode.type != ConfigNode.NodeType.LEAF_LIST)
+        if (!configNode.isLeafList())
             return;
         
-        Label label;
+        curRow++;
+        row = workSheet.createRow(curRow);
         
-        ConfigLeafList leaflist = (ConfigLeafList)configNode;
-            
-        try {
-
-            curRow++;
-            
-            //System.out.println(configNode);
-            String moduleName = configNode.getYangModule().configModuleName;
-            label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
-            sysParamSheet.addCell(label);
-
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
-            sysParamSheet.addCell(label);
-
-            if (leaflist.maxElements.length() != 0) {
-                String range = "size: 0.." + leaflist.maxElements;
-                
-                label = new Label(COLUMN_RANGE,curRow, range, normalFormat);
-                sysParamSheet.addCell(label);
-            }
-            
-        } catch (WriteException e) {   
-            e.printStackTrace();   
+        //System.out.println(configNode.getName());
+        writeCurRowCell(COLUMN_MODULE, csNormal, configNode.getYangModule().configModuleName);
+        writeCurRowCell(COLUMN_NODE_TYPE, csNormal, configNode.type.toString().toLowerCase());
+        writeCurRowCell(COLUMN_HIERARCHY, csNormal, configNode.getMiddleName());
+        writeCurRowCell(COLUMN_NAME, csNormal, configNode.getName());
+        writeCurRowCell(COLUMN_CONF_ABLE, csNormal, configNode.configurable);
+        writeCurRowCell(COLUMN_SCOPE, csNormal, configNode.getScopeName());
+        writeCurRowCell(COLUMN_DESCP, csNormal, configNode.getDescription());
+        
+        if (configNode.maxElements.length() != 0) {
+            String range = "size: 0.." + configNode.maxElements;
+            cell = row.createCell(COLUMN_RANGE);
+            cell.setCellStyle(csNormal);
+            cell.setCellValue(range);
         }
+            
     }
     
     
     void exportList(ConfigNode configNode) {
         
-        if (configNode.type != ConfigNode.NodeType.LIST)
+        if (!configNode.isList())
             return;
         
-        Label label;
-        ConfigList list = (ConfigList)configNode;
-            
-        try {
-
-            curRow++;
-            
-            //System.out.println(configNode);
-            String moduleName = configNode.getYangModule().configModuleName;
-            label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_CONF_ABLE,curRow, configNode.configurable, normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_SCOPE,curRow, configNode.getScopeName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
-            sysParamSheet.addCell(label);
-
-            label = new Label(COLUMN_DESCP,curRow, list.getDescription(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            /*
-            label = new Label(COLUMN_FORMAT,curRow, configNode.dataType.getTypeName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            
-            label = new Label(COLUMN_UNITS,curRow, configNode.getUnits(), normalFormat);
-            sysParamSheet.addCell(label);
-            */
-            
-            if (list.maxElements.length() != 0) {
-                String range = "size: 0.." + list.maxElements;
-                label = new Label(COLUMN_RANGE,curRow, range, normalFormat);
-                sysParamSheet.addCell(label);
-            }            
-
-            
-            /*
-            label = new Label(COLUMN_DEFAULT,curRow, configNode.getDefaultVal(), normalFormat);
-            sysParamSheet.addCell(label);
-            */
-            
-            label = new Label(COLUMN_ADD_REL,curRow, configNode.getAddRelease(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_MOD_REL,curRow, configNode.getModRelease(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NOTES,curRow, configNode.getNotes(), normalFormat);
-            sysParamSheet.addCell(label);
-
-            
-            
-        } catch (WriteException e) {   
-            e.printStackTrace();   
+        curRow++;
+        row = workSheet.createRow(curRow);
+        
+        //System.out.println(configNode.getName());
+        writeCurRowCell(COLUMN_MODULE, csGroup, configNode.getYangModule().configModuleName);
+        writeCurRowCell(COLUMN_NODE_TYPE, csGroup, configNode.type.toString().toLowerCase());
+        writeCurRowCell(COLUMN_HIERARCHY, csGroup, configNode.getMiddleName());
+        writeCurRowCell(COLUMN_NAME, csGroup, configNode.getName());
+        writeCurRowCell(COLUMN_CONF_ABLE, csGroup, configNode.configurable);
+        writeCurRowCell(COLUMN_SCOPE, csGroup, configNode.getScopeName());
+        writeCurRowCell(COLUMN_DESCP, csGroup, configNode.getDescription());
+        
+        if (configNode.maxElements.length() != 0) {
+            String range = "size: 0.." + configNode.maxElements;
+            cell = row.createCell(COLUMN_RANGE);
+            cell.setCellStyle(csNormal);
+            cell.setCellValue(range);
         }
     }
     
     
     void exportContainer(ConfigNode configNode) {
-        
-        if (configNode.type != ConfigNode.NodeType.CONTAINER)
+        if (!configNode.isContainer()) {
             return;
-        
-        Label label;
-            
-        try {
-
-            curRow++;
-            
-            //System.out.println(configNode);
-            String moduleName = configNode.getYangModule().configModuleName;
-            label = new Label(COLUMN_MODULE,curRow, moduleName,normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_HIERARCHY,curRow, configNode.getMiddleName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NAME,curRow, configNode.getName(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-            label = new Label(COLUMN_NODE_TYPE,curRow, configNode.type.toString().toLowerCase(), normalFormat);
-            sysParamSheet.addCell(label);
-            
-        } catch (WriteException e) {   
-            e.printStackTrace();   
         }
+        
+        curRow++;
+        row = workSheet.createRow(curRow);
+
+        //System.out.println(configNode.getName());
+        writeCurRowCell(COLUMN_MODULE, csGroup, configNode.getYangModule().configModuleName);
+        writeCurRowCell(COLUMN_NODE_TYPE, csGroup, configNode.type.toString().toLowerCase());
+        writeCurRowCell(COLUMN_HIERARCHY, csGroup, configNode.getMiddleName());
+        writeCurRowCell(COLUMN_NAME, csGroup, configNode.getName());
+        writeCurRowCell(COLUMN_CONF_ABLE, csGroup, configNode.configurable);
+        writeCurRowCell(COLUMN_SCOPE, csGroup, configNode.getScopeName());
+        writeCurRowCell(COLUMN_DESCP, csGroup, configNode.getDescription());
     }
     
-    void printHeadline() 
+    void printTitle() 
     {
-        try { 
-            // get the first sheet   
-            sysParamSheet = wwb.createSheet("7510-PDD", 0);
-    
-            WritableFont Font1 = new WritableFont(WritableFont.ARIAL, 10); 
-            WritableFont Font2 = new WritableFont(WritableFont.TAHOMA, 10, 
-                                                  WritableFont.BOLD);
-            
-            //WritableFont.TAHOMA;
-            //WritableFont.COURIER;   ARIAL
-            //WritableFont.TIMES
-
-            //syntaxFormat  = new WritableCellFormat(Font3);
-            normalFormat  = new WritableCellFormat(Font1);
-            headerFormat  = new WritableCellFormat(Font2);
-    
-            //syntaxFormat.setBackground(jxl.format.Colour.GRAY_25);
-            headerFormat.setBackground(jxl.format.Colour.PALE_BLUE);
-            normalFormat.setWrap(true);
-            
-            curRow = 0;
-            
-            sysParamSheet.setColumnView(COLUMN_MODULE,   10);
-            sysParamSheet.setColumnView(COLUMN_NODE_TYPE,10);
-            sysParamSheet.setColumnView(COLUMN_NAME,     15);
-            sysParamSheet.setColumnView(COLUMN_HIERARCHY,25);
-            sysParamSheet.setColumnView(COLUMN_CONF_ABLE,10);
-            sysParamSheet.setColumnView(COLUMN_SCOPE,    10);
-            sysParamSheet.setColumnView(COLUMN_DESCP,    50);
-            sysParamSheet.setColumnView(COLUMN_FORMAT,   15);
-            sysParamSheet.setColumnView(COLUMN_UNITS,     8);
-            sysParamSheet.setColumnView(COLUMN_RANGE,    15);
-            sysParamSheet.setColumnView(COLUMN_DEFAULT,  14);
-            sysParamSheet.setColumnView(COLUMN_ADD_REL,  10);
-            sysParamSheet.setColumnView(COLUMN_MOD_REL,  10);
-            sysParamSheet.setColumnView(COLUMN_NOTES,    30);
-    
-            Label labelHead;
-            labelHead = new Label(COLUMN_MODULE,curRow, "Module", headerFormat);
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_NODE_TYPE,curRow, "NodeType", headerFormat);
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_HIERARCHY,curRow, "hierarchy", headerFormat);
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_NAME,curRow, "Name", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_CONF_ABLE,curRow, "config", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_SCOPE,curRow, "Scope", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_DESCP,curRow, "Description", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_FORMAT,curRow, "Format", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_UNITS,curRow, "Units", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_RANGE,curRow, "Range", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_DEFAULT,curRow, "Default", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_ADD_REL,curRow, "add_release", headerFormat);  
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_MOD_REL,curRow, "mod_release", headerFormat);
-            sysParamSheet.addCell(labelHead);
-            labelHead = new Label(COLUMN_NOTES,curRow, "notes", headerFormat);
-            sysParamSheet.addCell(labelHead);
+        curRow = 0;
         
-        } catch (WriteException e) {   
-            e.printStackTrace();   
-        }
+        row = workSheet.createRow(curRow);
+
+        writeCurRowCell(COLUMN_MODULE, csTitle, "Module");
+        writeCurRowCell(COLUMN_NODE_TYPE, csTitle, "NodeType");
+        writeCurRowCell(COLUMN_HIERARCHY, csTitle, "hierarchy");
+        writeCurRowCell(COLUMN_NAME, csTitle, "Name");
+        writeCurRowCell(COLUMN_CONF_ABLE, csTitle, "config");
+        writeCurRowCell(COLUMN_SCOPE, csTitle, "Scope");
+        writeCurRowCell(COLUMN_DESCP, csTitle, "Description");
+        writeCurRowCell(COLUMN_FORMAT, csTitle, "Format");
+        writeCurRowCell(COLUMN_UNITS, csTitle, "units");
+        writeCurRowCell(COLUMN_RANGE, csTitle, "Range");
+        writeCurRowCell(COLUMN_DEFAULT, csTitle, "Default");
+        writeCurRowCell(COLUMN_ADD_REL, csTitle, "add_release");
+        writeCurRowCell(COLUMN_MOD_REL, csTitle, "mod_release");
+        writeCurRowCell(COLUMN_NOTES, csTitle, "notes");
     }
 
     
     public void export(String fileName, ConfigTree _confTree)
     {
         try {
-            wwb = Workbook.createWorkbook(new File(fileName));   
+            outFile = new FileOutputStream(fileName);
+            workBook = new HSSFWorkbook();
+            workSheet = workBook.createSheet();
         } catch (IOException e) {   
             e.printStackTrace();   
         }   
         
-        if(wwb!=null){
-            printHeadline();
+        if(workBook!=null){
+
             setConfigTree(_confTree);
+            
+            workBook.setSheetName(0, "7510-PDD");
+            
+            ftTitle = workBook.createFont();
+            ftTitle.setColor(HSSFColor.WHITE.index);
+            ftTitle.setFontName("Tahoma");
+            ftTitle.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+
+            csTitle = workBook.createCellStyle();
+            csTitle.setFillForegroundColor(HSSFColor.LIGHT_BLUE.index);
+            csTitle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+            csTitle.setFont(ftTitle);
+            
+            
+            ftNormal = workBook.createFont();
+            csNormal = workBook.createCellStyle();
+            csNormal.setWrapText(true);
+
+
+            ftGroup = workBook.createFont();
+            csGroup = workBook.createCellStyle();
+            csGroup.setWrapText(true);
+            csGroup.setFillForegroundColor(HSSFColor.LIGHT_CORNFLOWER_BLUE.index);
+            csGroup.setFillPattern(CellStyle.SOLID_FOREGROUND);
+            
+            ftKeywd = workBook.createFont();
+            csKeywd = workBook.createCellStyle();
+            
+            workSheet.setColumnWidth(COLUMN_MODULE,   10*256);
+            workSheet.setColumnWidth(COLUMN_NODE_TYPE,10*256);
+            workSheet.setColumnWidth(COLUMN_NAME,     15*256);
+            workSheet.setColumnWidth(COLUMN_HIERARCHY,25*256);
+            workSheet.setColumnWidth(COLUMN_CONF_ABLE,10*256);
+            workSheet.setColumnWidth(COLUMN_SCOPE,    10*256);
+            workSheet.setColumnWidth(COLUMN_DESCP,    50*256);
+            workSheet.setColumnWidth(COLUMN_FORMAT,   15*256);
+            workSheet.setColumnWidth(COLUMN_UNITS,     8*256);
+            workSheet.setColumnWidth(COLUMN_RANGE,    15*256);
+            workSheet.setColumnWidth(COLUMN_DEFAULT,  14*256);
+            workSheet.setColumnWidth(COLUMN_ADD_REL,  10*256);
+            workSheet.setColumnWidth(COLUMN_MOD_REL,  10*256);
+            workSheet.setColumnWidth(COLUMN_NOTES,    30*256);
+            
+            printTitle();
+            
             super.walkthrough();
         }
   
         try {   
-            wwb.write();   
-            wwb.close();   
+            workBook.write(outFile);
+            outFile.close();
         } catch (IOException e) {   
-            e.printStackTrace();   
-        } catch (WriteException e) {   
             e.printStackTrace();   
         }   
     } 

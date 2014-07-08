@@ -128,6 +128,7 @@ public class ConfigNode {
     
     public boolean isConfigModule()    { return type == NodeType.MODULE;       }
     public boolean isContainer()       { return type == NodeType.CONTAINER;    }
+    public boolean isList()            { return type == NodeType.LIST;         }
     public boolean isLeaf()            { return type == NodeType.LEAF;         }
     public boolean isLeafList()        { return type == NodeType.LEAF_LIST;    }
     public boolean isDataType()        { return type == NodeType.DATA_TYPE;    }
@@ -191,7 +192,7 @@ public class ConfigNode {
         }
         
         if (dataType.typeDefinition.isBuiltin()) {
-            System.out.println("dataTypeName: <" + dataType.getName().trim() + ">");
+            //System.out.println("dataTypeName: <" + dataType.getName().trim() + ">");
             return dataType.getName().trim();
         }
         
