@@ -26,7 +26,7 @@ import conf.ConfigTree;
 import conf.YangFileTree;
 import conf.YangParser;
 import conf.YinParser;
-import conf.ConfigExportPDD;
+import conf.ConfigExportPdd;
 import cli.CliCommandTree;
 import cli.CliDefParser;
 import cli.CliXmlParser;
@@ -298,7 +298,7 @@ public class PConfMain {
         if (pddFile.length() != 0) {
             System.out.print("now export PDD document ...");
             
-            ConfigExportPDD exportPdd = new ConfigExportPDD();
+            ConfigExportPdd exportPdd = new ConfigExportPdd();
             
             exportPdd.export(pddFile, configTree);
             

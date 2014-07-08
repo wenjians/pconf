@@ -410,7 +410,7 @@ public final class YinParser {
             String keyword = node.getNodeName();
             
             if (keyword.contentEquals("key")) {
-                confList.listKey = xmlStmnt.getAttribute("value").trim();
+                confList.setListKey(xmlStmnt.getAttribute("value").trim());
             }
             
             else {

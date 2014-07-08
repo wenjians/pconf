@@ -1,14 +1,6 @@
 package conf;
 
 
-//import java.util.*;
-
-
-
-
-
-
-
 import util.PConfError;
 
 
@@ -43,49 +35,70 @@ public class ConfigExport {
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportLeaf(ConfigNode configNode) {
+    void exportLeafEnter(ConfigNode configNode) {
+        
+    }
+
+    void exportLeafExit(ConfigNode configNode) {
         
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportLeafList(ConfigNode configNode) {
+    void exportLeafListEnter(ConfigNode configNode) {
+        
+    }
+    
+    void exportLeafListExit(ConfigNode configNode) {
         
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportList(ConfigNode configNode) {
+    void exportListEnter(ConfigNode configNode) {
         
+    }
+    
+    void exportListExit(ConfigNode configNode) {
         
     }
     
     /* do nothing, this function to be over-writtn by sub-classes */ 
-    void exportContainer(ConfigNode configNode) {
+    void exportContainerEnter(ConfigNode configNode) {
         
     }
-    
+
+    void exportContainerExit(ConfigNode configNode) {
+        
+    }
+
     final void exportOneNode(ConfigNode configNode) {
         if (configNode.type == ConfigNode.NodeType.LEAF) {
-            exportLeaf(configNode);
+            exportLeafEnter(configNode);
+            exportLeafExit(configNode);
         }
         
         else if (configNode.type == ConfigNode.NodeType.LEAF_LIST) {
-            exportLeafList(configNode);
+            exportLeafListEnter(configNode);
+            exportLeafListExit(configNode);
         }
         
         else if (configNode.type == ConfigNode.NodeType.CONTAINER) {
-            exportContainer(configNode);
+            exportContainerEnter(configNode);
             
             for (ConfigNode node:configNode.children) {
                 exportOneNode(node);
             }
+            
+            exportContainerExit(configNode);
         }
         
         else if (configNode.type == ConfigNode.NodeType.LIST) {
-            exportList(configNode);
+            exportListEnter(configNode);
 
             for (ConfigNode node:configNode.children) {
                 exportOneNode(node);
             }
+            
+            exportListExit(configNode);
         }
         
         else {

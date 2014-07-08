@@ -642,6 +642,19 @@ class ConfigList extends ConfigNode {
         limit_must = new ArrayList <ConfigCondition> () ;
     }
     
+    
+    public String getListKey() {
+        return listKey;
+    }
+
+
+
+    public void setListKey(String listKey) {
+        this.listKey = listKey;
+    }
+
+
+
     @Override
     public String toString() {
         return "ConfndList [key=" + listKey + ", " + super.toString() + "]";

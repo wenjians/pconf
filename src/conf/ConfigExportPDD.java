@@ -14,7 +14,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 
-public class ConfigExportPDD extends ConfigExport{
+public class ConfigExportPdd extends ConfigExport{
 
     final static int COLUMN_MODULE     = 0;
     final static int COLUMN_NODE_TYPE  = 1;
@@ -35,13 +35,15 @@ public class ConfigExportPDD extends ConfigExport{
     Workbook workBook;
     Sheet workSheet;
     
-    CellStyle csTitle ;
-    CellStyle csGroup ;
+    CellStyle csTitle;
+    CellStyle csGroup;
+    CellStyle csGroupExit;
     CellStyle csNormal;
     CellStyle csKeywd;
     
     Font ftTitle;
     Font ftGroup;
+    Font ftGroupExit;
     Font ftNormal;
     Font ftKeywd;
     
@@ -50,7 +52,7 @@ public class ConfigExportPDD extends ConfigExport{
     
     int curRow;
             
-    public ConfigExportPDD () {
+    public ConfigExportPdd () {
         curRow = 0;
     }
     
@@ -60,11 +62,36 @@ public class ConfigExportPDD extends ConfigExport{
         cell.setCellValue(value);
     }
     
+    /*
+    private String getSpacedName(String hieraryName, String name) {
+        String spacedName = "";
+        String[] keywords = hieraryName.split("/");
+        for (String key: keywords) {
+            if (!spacedName.isEmpty()) {
+                spacedName += " ";
+            }
+            spacedName += key;
+        }
+        
+        return spacedName + " " + name;
+    }
+    */
+    
     @Override
-    void exportLeaf(ConfigNode configNode) {
+    void exportLeafEnter(ConfigNode configNode) {
         if (!configNode.isLeaf())
             return;
-        
+
+        CellStyle csName = csNormal;
+
+        if (configNode.getParent().isList()) {
+            ConfigList list = (ConfigList) configNode.getParent();
+
+            if (list.getListKey().contentEquals(configNode.getName())) {
+                csName = csKeywd;
+            }
+        }
+
         curRow++;
         row = workSheet.createRow(curRow);
         
@@ -72,7 +99,7 @@ public class ConfigExportPDD extends ConfigExport{
         writeCurRowCell(COLUMN_MODULE, csNormal, configNode.getYangModule().configModuleName);
         writeCurRowCell(COLUMN_NODE_TYPE, csNormal, configNode.type.toString().toLowerCase());
         writeCurRowCell(COLUMN_HIERARCHY, csNormal, configNode.getMiddleName());
-        writeCurRowCell(COLUMN_NAME, csNormal, configNode.getName());
+        writeCurRowCell(COLUMN_NAME, csName, configNode.getName());
         writeCurRowCell(COLUMN_CONF_ABLE, csNormal, configNode.configurable);
         writeCurRowCell(COLUMN_SCOPE, csNormal, configNode.getScopeName());
         writeCurRowCell(COLUMN_DESCP, csNormal, configNode.getDescription());
@@ -86,7 +113,7 @@ public class ConfigExportPDD extends ConfigExport{
     }
 
     
-    void exportLeafList(ConfigNode configNode) {
+    void exportLeafListEnter(ConfigNode configNode) {
         if (!configNode.isLeafList())
             return;
         
@@ -111,8 +138,8 @@ public class ConfigExportPDD extends ConfigExport{
             
     }
     
-    
-    void exportList(ConfigNode configNode) {
+
+    void exportListEnter(ConfigNode configNode) {
         
         if (!configNode.isList())
             return;
@@ -136,9 +163,26 @@ public class ConfigExportPDD extends ConfigExport{
             cell.setCellValue(range);
         }
     }
+
+    void exportListExit(ConfigNode configNode) {
+        
+        if (!configNode.isList())
+            return;
+        
+        curRow++;
+        row = workSheet.createRow(curRow);
+        
+        //System.out.println(configNode.getName());
+        writeCurRowCell(COLUMN_MODULE, csGroupExit, configNode.getYangModule().configModuleName);
+        writeCurRowCell(COLUMN_NODE_TYPE, csGroupExit, "End List");
+        writeCurRowCell(COLUMN_HIERARCHY, csGroupExit, configNode.getFullPathName());
+        writeCurRowCell(COLUMN_NAME, csGroupExit, null);
+        writeCurRowCell(COLUMN_CONF_ABLE, csGroupExit, null);
+        writeCurRowCell(COLUMN_SCOPE, csGroupExit, null);
+        writeCurRowCell(COLUMN_DESCP, csGroupExit, null);
+    }
     
-    
-    void exportContainer(ConfigNode configNode) {
+    void exportContainerEnter(ConfigNode configNode) {
         if (!configNode.isContainer()) {
             return;
         }
@@ -154,6 +198,24 @@ public class ConfigExportPDD extends ConfigExport{
         writeCurRowCell(COLUMN_CONF_ABLE, csGroup, configNode.configurable);
         writeCurRowCell(COLUMN_SCOPE, csGroup, configNode.getScopeName());
         writeCurRowCell(COLUMN_DESCP, csGroup, configNode.getDescription());
+    }
+    
+    void exportContainerExit(ConfigNode configNode) {
+        if (!configNode.isContainer()) {
+            return;
+        }
+        
+        curRow++;
+        row = workSheet.createRow(curRow);
+
+        //System.out.println(configNode.getName());
+        writeCurRowCell(COLUMN_MODULE, csGroupExit, configNode.getYangModule().configModuleName);
+        writeCurRowCell(COLUMN_NODE_TYPE, csGroupExit, "End Group");
+        writeCurRowCell(COLUMN_HIERARCHY, csGroupExit, configNode.getFullPathName());
+        writeCurRowCell(COLUMN_NAME, csGroupExit, null);
+        writeCurRowCell(COLUMN_CONF_ABLE, csGroupExit, null);
+        writeCurRowCell(COLUMN_SCOPE, csGroupExit, null);
+        writeCurRowCell(COLUMN_DESCP, csGroupExit, null);
     }
     
     void printTitle() 
@@ -199,7 +261,6 @@ public class ConfigExportPDD extends ConfigExport{
             ftTitle.setColor(HSSFColor.WHITE.index);
             ftTitle.setFontName("Tahoma");
             ftTitle.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
-
             csTitle = workBook.createCellStyle();
             csTitle.setFillForegroundColor(HSSFColor.LIGHT_BLUE.index);
             csTitle.setFillPattern(CellStyle.SOLID_FOREGROUND);
@@ -209,24 +270,36 @@ public class ConfigExportPDD extends ConfigExport{
             ftNormal = workBook.createFont();
             csNormal = workBook.createCellStyle();
             csNormal.setWrapText(true);
+            csNormal.setFont(ftNormal);
 
 
             ftGroup = workBook.createFont();
             csGroup = workBook.createCellStyle();
             csGroup.setWrapText(true);
-            csGroup.setFillForegroundColor(HSSFColor.LIGHT_CORNFLOWER_BLUE.index);
+            csGroup.setFillForegroundColor(HSSFColor.AQUA.index);
             csGroup.setFillPattern(CellStyle.SOLID_FOREGROUND);
+            csGroup.setFont(ftGroup);
+            
+            
+            csGroupExit = workBook.createCellStyle();
+            csGroupExit.setFillForegroundColor(HSSFColor.AQUA.index);
+            csGroupExit.setFillPattern(CellStyle.SOLID_FOREGROUND);
+            
             
             ftKeywd = workBook.createFont();
+            ftKeywd.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+            ftKeywd.setColor(HSSFColor.DARK_RED.index);
+            ftKeywd.setUnderline(Font.U_SINGLE);
             csKeywd = workBook.createCellStyle();
+            csKeywd.setFont(ftKeywd);
             
             workSheet.setColumnWidth(COLUMN_MODULE,   10*256);
             workSheet.setColumnWidth(COLUMN_NODE_TYPE,10*256);
+            workSheet.setColumnWidth(COLUMN_HIERARCHY,30*256);
             workSheet.setColumnWidth(COLUMN_NAME,     15*256);
-            workSheet.setColumnWidth(COLUMN_HIERARCHY,25*256);
             workSheet.setColumnWidth(COLUMN_CONF_ABLE,10*256);
             workSheet.setColumnWidth(COLUMN_SCOPE,    10*256);
-            workSheet.setColumnWidth(COLUMN_DESCP,    50*256);
+            workSheet.setColumnWidth(COLUMN_DESCP,    60*256);
             workSheet.setColumnWidth(COLUMN_FORMAT,   15*256);
             workSheet.setColumnWidth(COLUMN_UNITS,     8*256);
             workSheet.setColumnWidth(COLUMN_RANGE,    15*256);
@@ -238,6 +311,8 @@ public class ConfigExportPDD extends ConfigExport{
             printTitle();
             
             super.walkthrough();
+            
+            //workSheet.groupRow(1,  10);
         }
   
         try {   
