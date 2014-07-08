@@ -1,5 +1,3 @@
-*.class
-rfc6020.txt.YANG - A Data Modeling Language.pdf
 parameters/export/7510-pdd-save.xls
 parameters/export/7510-pdd.xls
 parameters/yin/gw-h248-type.xml
@@ -11,8 +9,6 @@ parameters/yin/gw-lpa-type.xml
 parameters/yin/gw-system-cli.xml
 parameters/yin/gw-system.xml
 parameters/yin/ietf-inet-types.xml
-.classpath
-.project
 *.yang
 *.xls
 *.xml
@@ -20,3 +16,4 @@ parameters/yin/ietf-inet-types.xml
 *.html
 *.csv
 *.xlsx
+*.class
