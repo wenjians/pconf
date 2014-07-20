@@ -540,23 +540,40 @@ public final class YinParser {
                 break;
             }
             
-            else if (keyword.endsWith("gw:scope")) {
-                configNode.setScope(xmlStmnt.getAttribute("string").trim());
+            else if (keyword.contentEquals("gw:retrieval")) {
+                configNode.setRetrieval(xmlStmnt.getAttribute("string").trim());
             }
             
-            else if (keyword.endsWith("gw:add-release")) {
-                configNode.setAddRelease(xmlStmnt.getAttribute("release").trim());
+            else if (keyword.contentEquals("gw:critical")) {
+                configNode.setCritical(xmlStmnt.getAttribute("boolean").trim());
+                System.out.println("gw:critical: <" + configNode.getCritical() + ">");
             }
             
-            else if (keyword.endsWith("gw:mod-release")) {
-                configNode.setModRelease(xmlStmnt.getAttribute("release").trim());
-            }
-            
-            else if (keyword.endsWith("gw:service-impact")) {
+            else if (keyword.contentEquals("gw:service-impact")) {
                 configNode.setServiceImpact(xmlStmnt.getAttribute("string").trim());
             }
             
-            else if (keyword.endsWith("gw:notes")) {
+            else if (keyword.contentEquals("gw:external-impact")) {
+                configNode.setExternalImpact(xmlStmnt.getAttribute("string").trim());
+            }
+            
+            else if (keyword.contentEquals("gw:internal-impact")) {
+                configNode.setInternalImpact(xmlStmnt.getAttribute("string").trim());
+            }
+            
+            else if (keyword.contentEquals("gw:scope")) {
+                configNode.setScope(xmlStmnt.getAttribute("string").trim());
+            }
+            
+            else if (keyword.contentEquals("gw:add-release")) {
+                configNode.setAddRelease(xmlStmnt.getAttribute("release").trim());
+            }
+            
+            else if (keyword.contentEquals("gw:mod-release")) {
+                configNode.setModRelease(xmlStmnt.getAttribute("release").trim());
+            }
+            
+            else if (keyword.contentEquals("gw:notes")) {
                 configNode.setNotes(xmlStmnt.getAttribute("string").trim());
             }
             

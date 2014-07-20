@@ -24,12 +24,16 @@ public class ConfigExportPdd extends ConfigExport{
     final static int COLUMN_SCOPE      = 5;
     final static int COLUMN_DESCP      = 6;
     final static int COLUMN_FORMAT     = 7;
-    final static int COLUMN_UNITS      = 8;
-    final static int COLUMN_RANGE      = 9;
-    final static int COLUMN_DEFAULT    =10;
-    final static int COLUMN_ADD_REL    =11;
-    final static int COLUMN_MOD_REL    =12;
-    final static int COLUMN_NOTES      =13;
+    final static int COLUMN_RANGE      = 8;
+    final static int COLUMN_DEFAULT    = 9;
+    final static int COLUMN_RETRIEVAL  =10;
+    final static int COLUMN_CRITICAL   =11;
+    final static int COLUMN_SERVICE_IMPACT =12;
+    final static int COLUMN_EXTERNAL_IMPACT=13;
+    final static int COLUMN_INTERNAL_IMPACT=14;
+    final static int COLUMN_ADD_REL    =15;
+    final static int COLUMN_MOD_REL    =16;
+    final static int COLUMN_NOTES      =17;
     
     FileOutputStream outFile;
     Workbook workBook;
@@ -104,12 +108,17 @@ public class ConfigExportPdd extends ConfigExport{
         writeCurRowCell(COLUMN_SCOPE, csNormal, configNode.getScopeName());
         writeCurRowCell(COLUMN_DESCP, csNormal, configNode.getDescription());
         writeCurRowCell(COLUMN_FORMAT, csNormal, configNode.getBuiltinName());
-        writeCurRowCell(COLUMN_UNITS, csNormal, configNode.getUnits());
-        writeCurRowCell(COLUMN_RANGE, csNormal, configNode.dataType.getRange());
+        writeCurRowCell(COLUMN_RANGE, csNormal, configNode.dataType.getRange() + " " + configNode.getUnits());
         writeCurRowCell(COLUMN_DEFAULT, csNormal, configNode.getDefaultVal());
         writeCurRowCell(COLUMN_ADD_REL, csNormal, configNode.getAddRelease());
         writeCurRowCell(COLUMN_MOD_REL, csNormal, configNode.getModRelease());
         writeCurRowCell(COLUMN_NOTES, csNormal, configNode.getNotes());
+        
+        writeCurRowCell(COLUMN_RETRIEVAL, csNormal, configNode.getRetrieval());
+        writeCurRowCell(COLUMN_CRITICAL, csNormal, configNode.getCritical());
+        writeCurRowCell(COLUMN_SERVICE_IMPACT, csNormal, configNode.getServiceImpact());
+        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csNormal, configNode.getExternalImpact());
+        writeCurRowCell(COLUMN_INTERNAL_IMPACT, csNormal, configNode.getInternalImpact());
     }
 
     
@@ -135,6 +144,12 @@ public class ConfigExportPdd extends ConfigExport{
             cell.setCellStyle(csNormal);
             cell.setCellValue(range);
         }
+        
+        writeCurRowCell(COLUMN_RETRIEVAL, csNormal, configNode.getRetrieval());
+        writeCurRowCell(COLUMN_CRITICAL, csNormal, configNode.getCritical());
+        writeCurRowCell(COLUMN_SERVICE_IMPACT, csNormal, configNode.getServiceImpact());
+        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csNormal, configNode.getExternalImpact());
+        writeCurRowCell(COLUMN_INTERNAL_IMPACT, csNormal, configNode.getInternalImpact());
             
     }
     
@@ -232,9 +247,13 @@ public class ConfigExportPdd extends ConfigExport{
         writeCurRowCell(COLUMN_SCOPE, csTitle, "Scope");
         writeCurRowCell(COLUMN_DESCP, csTitle, "Description");
         writeCurRowCell(COLUMN_FORMAT, csTitle, "Format");
-        writeCurRowCell(COLUMN_UNITS, csTitle, "units");
         writeCurRowCell(COLUMN_RANGE, csTitle, "Range");
         writeCurRowCell(COLUMN_DEFAULT, csTitle, "Default");
+        writeCurRowCell(COLUMN_RETRIEVAL, csTitle, "Retrieval Mechanism");
+        writeCurRowCell(COLUMN_CRITICAL, csTitle, "Critical (Y/N)");
+        writeCurRowCell(COLUMN_SERVICE_IMPACT, csTitle, "Service Impact");
+        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csTitle, "External Impact");
+        writeCurRowCell(COLUMN_INTERNAL_IMPACT, csTitle, "Internal Impact");
         writeCurRowCell(COLUMN_ADD_REL, csTitle, "add_release");
         writeCurRowCell(COLUMN_MOD_REL, csTitle, "mod_release");
         writeCurRowCell(COLUMN_NOTES, csTitle, "notes");
@@ -301,12 +320,17 @@ public class ConfigExportPdd extends ConfigExport{
             workSheet.setColumnWidth(COLUMN_SCOPE,    10*256);
             workSheet.setColumnWidth(COLUMN_DESCP,    60*256);
             workSheet.setColumnWidth(COLUMN_FORMAT,   15*256);
-            workSheet.setColumnWidth(COLUMN_UNITS,     8*256);
             workSheet.setColumnWidth(COLUMN_RANGE,    15*256);
             workSheet.setColumnWidth(COLUMN_DEFAULT,  14*256);
+            workSheet.setColumnWidth(COLUMN_RETRIEVAL,40*256);
+            workSheet.setColumnWidth(COLUMN_CRITICAL, 10*256);
+            workSheet.setColumnWidth(COLUMN_SERVICE_IMPACT,  30*256);
+            workSheet.setColumnWidth(COLUMN_EXTERNAL_IMPACT, 30*256);
+            workSheet.setColumnWidth(COLUMN_INTERNAL_IMPACT, 20*256);
             workSheet.setColumnWidth(COLUMN_ADD_REL,  10*256);
             workSheet.setColumnWidth(COLUMN_MOD_REL,  10*256);
             workSheet.setColumnWidth(COLUMN_NOTES,    30*256);
+            
             
             printTitle();
             

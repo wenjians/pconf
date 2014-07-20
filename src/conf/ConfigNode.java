@@ -82,9 +82,14 @@ public class ConfigNode {
     
     /* the following is gw specific defined attribution */
     Scope  gw_scope;
+    String gw_retrieval;
+    String gw_critical;
+    String gw_service_impact;   /* service impact for the parameter changes */
+    String gw_external_impact;
+    String gw_internal_impact;
     String gw_add_rel;
     String gw_mod_rel;
-    String gw_service_impact;	/* service impact for the parameter changes */
+    
     String gw_notes;
     String gw_feature_id;
         
@@ -266,6 +271,40 @@ public class ConfigNode {
 
     public void setServiceImpact(String gw_serivce_impact) {
         this.gw_service_impact = gw_serivce_impact;
+    }
+
+    
+    public String getRetrieval() {
+        return gw_retrieval;
+    }
+
+    public void setRetrieval(String gw_retrieval) {
+        this.gw_retrieval = gw_retrieval;
+    }
+
+    public String getCritical() {
+        return gw_critical;
+    }
+
+    public void setCritical(String gw_critical) {
+        this.gw_critical = gw_critical;
+    }
+
+
+    public String getExternalImpact() {
+        return gw_external_impact;
+    }
+
+    public void setExternalImpact(String gw_external_impact) {
+        this.gw_external_impact = gw_external_impact;
+    }
+
+    public String getInternalImpact() {
+        return gw_internal_impact;
+    }
+
+    public void setInternalImpact(String gw_internal_impact) {
+        this.gw_internal_impact = gw_internal_impact;
     }
 
     public String getNotes() {
