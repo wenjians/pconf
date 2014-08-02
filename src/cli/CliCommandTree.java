@@ -257,7 +257,7 @@ public class CliCommandTree {
                 out.println("\n");
                 out.println("/*******************************************************************************");
                 out.println("**                                                                            **");
-                out.println("**                             ALCATEL LUCENT TELECOM                         **");
+                out.println("**                       Command Line Interface Tree Definition               **");
                 out.println("**                                                                            **");
                 out.println("*******************************************************************************/");
                 out.println("\n\n#include \"ui.h\"\n\n");
