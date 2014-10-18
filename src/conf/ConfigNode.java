@@ -920,7 +920,7 @@ class ConfigType extends ConfigNode {
             if (!length.isEmpty()) {
                 if (_range.length() != 0)
                     _range.append("\n");
-                _range.append("string: " + length);
+                _range.append("length: " + length);
             }
         }
         
