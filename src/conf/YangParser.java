@@ -92,7 +92,7 @@ public class YangParser {
             
         String fullYinFileName  = yinFilePath  + "/" + yangFile.getYinFileName();
         
-        String command = String.format("pyang -f yin %s -o %s -p %s/external -p %s/extensions -p %s/common", 
+        String command = String.format("pyang -f yin %s -o %s -p %s/external -p %s/extensions -p %s/types", 
                                        fullYangFileName, fullYinFileName, yangFilePath, yangFilePath, yangFilePath);
         if (yangModule.getDirectory().length() != 0)
             command = command + " -p " + yangFilePath + "/" + yangModule.getDirectory();
