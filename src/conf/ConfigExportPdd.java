@@ -16,24 +16,23 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class ConfigExportPdd extends ConfigExport{
 
-    final static int COLUMN_MODULE     = 0;
-    final static int COLUMN_NODE_TYPE  = 1;
-    final static int COLUMN_HIERARCHY  = 2;
-    final static int COLUMN_NAME       = 3;
-    final static int COLUMN_CONF_ABLE  = 4;
-    final static int COLUMN_SCOPE      = 5;
-    final static int COLUMN_DESCP      = 6;
-    final static int COLUMN_FORMAT     = 7;
-    final static int COLUMN_RANGE      = 8;
-    final static int COLUMN_DEFAULT    = 9;
-    final static int COLUMN_RETRIEVAL  =10;
-    final static int COLUMN_CRITICAL   =11;
-    final static int COLUMN_SERVICE_IMPACT =12;
-    final static int COLUMN_EXTERNAL_IMPACT=13;
-    final static int COLUMN_INTERNAL_IMPACT=14;
-    final static int COLUMN_ADD_REL    =15;
-    final static int COLUMN_MOD_REL    =16;
-    final static int COLUMN_NOTES      =17;
+    //final static int COLUMN_MODULE     = 0;
+    //final static int COLUMN_NODE_TYPE  = 1;
+    //final static int COLUMN_HIERARCHY  = 2;
+    final static int COLUMN_NAME       = 0;
+    //final static int COLUMN_CONF_ABLE  = 4;
+    //final static int COLUMN_SCOPE      = 5;
+    final static int COLUMN_DESCP      = 1;
+    //final static int COLUMN_FORMAT     = 7;
+    final static int COLUMN_RANGE      = 2;
+    final static int COLUMN_DEFAULT    = 3;
+    final static int COLUMN_RETRIEVAL  = 4;
+    final static int COLUMN_CRITICAL   = 5;
+    final static int COLUMN_SERVICE_IMPACT = 6;
+    final static int COLUMN_INTERNAL_IMPACT= 7;
+    final static int COLUMN_EXTERNAL_IMPACT= 8;
+    final static int COLUMN_NOTES          = 9;
+    final static int COLUMN_IMS_RELEASE    =10;
     
     FileOutputStream outFile;
     Workbook workBook;
@@ -99,26 +98,17 @@ public class ConfigExportPdd extends ConfigExport{
         curRow++;
         row = workSheet.createRow(curRow);
         
-        //System.out.println(configNode.getName());
-        writeCurRowCell(COLUMN_MODULE, csNormal, configNode.getYangModule().configModuleName);
-        writeCurRowCell(COLUMN_NODE_TYPE, csNormal, configNode.type.toString().toLowerCase());
-        writeCurRowCell(COLUMN_HIERARCHY, csNormal, configNode.getMiddleName());
         writeCurRowCell(COLUMN_NAME, csName, configNode.getName());
-        writeCurRowCell(COLUMN_CONF_ABLE, csNormal, configNode.configurable);
-        writeCurRowCell(COLUMN_SCOPE, csNormal, configNode.getScopeName());
         writeCurRowCell(COLUMN_DESCP, csNormal, configNode.getDescription());
-        writeCurRowCell(COLUMN_FORMAT, csNormal, configNode.getBuiltinName());
         writeCurRowCell(COLUMN_RANGE, csNormal, configNode.dataType.getRange() + " " + configNode.getUnits());
         writeCurRowCell(COLUMN_DEFAULT, csNormal, configNode.getDefaultVal());
-        writeCurRowCell(COLUMN_ADD_REL, csNormal, configNode.getAddRelease());
-        writeCurRowCell(COLUMN_MOD_REL, csNormal, configNode.getModRelease());
-        writeCurRowCell(COLUMN_NOTES, csNormal, configNode.getNotes());
-        
         writeCurRowCell(COLUMN_RETRIEVAL, csNormal, configNode.getRetrieval());
         writeCurRowCell(COLUMN_CRITICAL, csNormal, configNode.getCritical());
         writeCurRowCell(COLUMN_SERVICE_IMPACT, csNormal, configNode.getServiceImpact());
-        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csNormal, configNode.getExternalImpact());
         writeCurRowCell(COLUMN_INTERNAL_IMPACT, csNormal, configNode.getInternalImpact());
+        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csNormal, configNode.getExternalImpact());
+        writeCurRowCell(COLUMN_NOTES, csNormal, configNode.getNotes());
+        
     }
 
     
@@ -129,13 +119,7 @@ public class ConfigExportPdd extends ConfigExport{
         curRow++;
         row = workSheet.createRow(curRow);
         
-        //System.out.println(configNode.getName());
-        writeCurRowCell(COLUMN_MODULE, csNormal, configNode.getYangModule().configModuleName);
-        writeCurRowCell(COLUMN_NODE_TYPE, csNormal, configNode.type.toString().toLowerCase());
-        writeCurRowCell(COLUMN_HIERARCHY, csNormal, configNode.getMiddleName());
         writeCurRowCell(COLUMN_NAME, csNormal, configNode.getName());
-        writeCurRowCell(COLUMN_CONF_ABLE, csNormal, configNode.configurable);
-        writeCurRowCell(COLUMN_SCOPE, csNormal, configNode.getScopeName());
         writeCurRowCell(COLUMN_DESCP, csNormal, configNode.getDescription());
         
         if (configNode.maxElements.length() != 0) {
@@ -148,8 +132,9 @@ public class ConfigExportPdd extends ConfigExport{
         writeCurRowCell(COLUMN_RETRIEVAL, csNormal, configNode.getRetrieval());
         writeCurRowCell(COLUMN_CRITICAL, csNormal, configNode.getCritical());
         writeCurRowCell(COLUMN_SERVICE_IMPACT, csNormal, configNode.getServiceImpact());
-        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csNormal, configNode.getExternalImpact());
         writeCurRowCell(COLUMN_INTERNAL_IMPACT, csNormal, configNode.getInternalImpact());
+        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csNormal, configNode.getExternalImpact());
+        writeCurRowCell(COLUMN_NOTES, csNormal, configNode.getNotes());
             
     }
     
@@ -163,12 +148,7 @@ public class ConfigExportPdd extends ConfigExport{
         row = workSheet.createRow(curRow);
         
         //System.out.println(configNode.getName());
-        writeCurRowCell(COLUMN_MODULE, csGroup, configNode.getYangModule().configModuleName);
-        writeCurRowCell(COLUMN_NODE_TYPE, csGroup, configNode.type.toString().toLowerCase());
-        writeCurRowCell(COLUMN_HIERARCHY, csGroup, configNode.getMiddleName());
-        writeCurRowCell(COLUMN_NAME, csGroup, configNode.getName());
-        writeCurRowCell(COLUMN_CONF_ABLE, csGroup, configNode.configurable);
-        writeCurRowCell(COLUMN_SCOPE, csGroup, configNode.getScopeName());
+        writeCurRowCell(COLUMN_NAME, csGroup, configNode.getFullPathName());
         writeCurRowCell(COLUMN_DESCP, csGroup, configNode.getDescription());
         
         if (configNode.maxElements.length() != 0) {
@@ -188,12 +168,8 @@ public class ConfigExportPdd extends ConfigExport{
         row = workSheet.createRow(curRow);
         
         //System.out.println(configNode.getName());
-        writeCurRowCell(COLUMN_MODULE, csGroupExit, configNode.getYangModule().configModuleName);
-        writeCurRowCell(COLUMN_NODE_TYPE, csGroupExit, "End List");
-        writeCurRowCell(COLUMN_HIERARCHY, csGroupExit, configNode.getFullPathName());
-        writeCurRowCell(COLUMN_NAME, csGroupExit, null);
-        writeCurRowCell(COLUMN_CONF_ABLE, csGroupExit, null);
-        writeCurRowCell(COLUMN_SCOPE, csGroupExit, null);
+        //writeCurRowCell(COLUMN_NODE_TYPE, csGroupExit, "End List");
+        writeCurRowCell(COLUMN_NAME, csGroupExit, "End List " + configNode.getFullPathName());
         writeCurRowCell(COLUMN_DESCP, csGroupExit, null);
     }
     
@@ -206,12 +182,7 @@ public class ConfigExportPdd extends ConfigExport{
         row = workSheet.createRow(curRow);
 
         //System.out.println(configNode.getName());
-        writeCurRowCell(COLUMN_MODULE, csGroup, configNode.getYangModule().configModuleName);
-        writeCurRowCell(COLUMN_NODE_TYPE, csGroup, configNode.type.toString().toLowerCase());
-        writeCurRowCell(COLUMN_HIERARCHY, csGroup, configNode.getMiddleName());
-        writeCurRowCell(COLUMN_NAME, csGroup, configNode.getName());
-        writeCurRowCell(COLUMN_CONF_ABLE, csGroup, configNode.configurable);
-        writeCurRowCell(COLUMN_SCOPE, csGroup, configNode.getScopeName());
+        writeCurRowCell(COLUMN_NAME, csGroup, configNode.getFullPathName());
         writeCurRowCell(COLUMN_DESCP, csGroup, configNode.getDescription());
     }
     
@@ -224,12 +195,7 @@ public class ConfigExportPdd extends ConfigExport{
         row = workSheet.createRow(curRow);
 
         //System.out.println(configNode.getName());
-        writeCurRowCell(COLUMN_MODULE, csGroupExit, configNode.getYangModule().configModuleName);
-        writeCurRowCell(COLUMN_NODE_TYPE, csGroupExit, "End Group");
-        writeCurRowCell(COLUMN_HIERARCHY, csGroupExit, configNode.getFullPathName());
-        writeCurRowCell(COLUMN_NAME, csGroupExit, null);
-        writeCurRowCell(COLUMN_CONF_ABLE, csGroupExit, null);
-        writeCurRowCell(COLUMN_SCOPE, csGroupExit, null);
+        writeCurRowCell(COLUMN_NAME, csGroupExit, "End Group " + configNode.getFullPathName());
         writeCurRowCell(COLUMN_DESCP, csGroupExit, null);
     }
     
@@ -239,24 +205,17 @@ public class ConfigExportPdd extends ConfigExport{
         
         row = workSheet.createRow(curRow);
 
-        writeCurRowCell(COLUMN_MODULE, csTitle, "Module");
-        writeCurRowCell(COLUMN_NODE_TYPE, csTitle, "NodeType");
-        writeCurRowCell(COLUMN_HIERARCHY, csTitle, "hierarchy");
-        writeCurRowCell(COLUMN_NAME, csTitle, "Name");
-        writeCurRowCell(COLUMN_CONF_ABLE, csTitle, "config");
-        writeCurRowCell(COLUMN_SCOPE, csTitle, "Scope");
+        writeCurRowCell(COLUMN_NAME, csTitle, "Parameter");
         writeCurRowCell(COLUMN_DESCP, csTitle, "Description");
-        writeCurRowCell(COLUMN_FORMAT, csTitle, "Format");
         writeCurRowCell(COLUMN_RANGE, csTitle, "Range");
-        writeCurRowCell(COLUMN_DEFAULT, csTitle, "Default");
+        writeCurRowCell(COLUMN_DEFAULT, csTitle, "Default Value");
         writeCurRowCell(COLUMN_RETRIEVAL, csTitle, "Retrieval Mechanism");
         writeCurRowCell(COLUMN_CRITICAL, csTitle, "Critical (Y/N)");
         writeCurRowCell(COLUMN_SERVICE_IMPACT, csTitle, "Service Impact");
-        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csTitle, "External Impact");
         writeCurRowCell(COLUMN_INTERNAL_IMPACT, csTitle, "Internal Impact");
-        writeCurRowCell(COLUMN_ADD_REL, csTitle, "add_release");
-        writeCurRowCell(COLUMN_MOD_REL, csTitle, "mod_release");
+        writeCurRowCell(COLUMN_EXTERNAL_IMPACT, csTitle, "External Impact");
         writeCurRowCell(COLUMN_NOTES, csTitle, "notes");
+        writeCurRowCell(COLUMN_IMS_RELEASE, csTitle, "add_release");
     }
 
     
@@ -312,25 +271,17 @@ public class ConfigExportPdd extends ConfigExport{
             csKeywd = workBook.createCellStyle();
             csKeywd.setFont(ftKeywd);
             
-            workSheet.setColumnWidth(COLUMN_MODULE,   10*256);
-            workSheet.setColumnWidth(COLUMN_NODE_TYPE,10*256);
-            workSheet.setColumnWidth(COLUMN_HIERARCHY,30*256);
             workSheet.setColumnWidth(COLUMN_NAME,     15*256);
-            workSheet.setColumnWidth(COLUMN_CONF_ABLE,10*256);
-            workSheet.setColumnWidth(COLUMN_SCOPE,    10*256);
             workSheet.setColumnWidth(COLUMN_DESCP,    60*256);
-            workSheet.setColumnWidth(COLUMN_FORMAT,   15*256);
             workSheet.setColumnWidth(COLUMN_RANGE,    15*256);
-            workSheet.setColumnWidth(COLUMN_DEFAULT,  14*256);
+            workSheet.setColumnWidth(COLUMN_DEFAULT,  20*256);
             workSheet.setColumnWidth(COLUMN_RETRIEVAL,40*256);
             workSheet.setColumnWidth(COLUMN_CRITICAL, 10*256);
             workSheet.setColumnWidth(COLUMN_SERVICE_IMPACT,  30*256);
-            workSheet.setColumnWidth(COLUMN_EXTERNAL_IMPACT, 30*256);
             workSheet.setColumnWidth(COLUMN_INTERNAL_IMPACT, 20*256);
-            workSheet.setColumnWidth(COLUMN_ADD_REL,  10*256);
-            workSheet.setColumnWidth(COLUMN_MOD_REL,  10*256);
+            workSheet.setColumnWidth(COLUMN_EXTERNAL_IMPACT, 30*256);
             workSheet.setColumnWidth(COLUMN_NOTES,    30*256);
-            
+            workSheet.setColumnWidth(COLUMN_IMS_RELEASE, 20*256);
             
             printTitle();
             
